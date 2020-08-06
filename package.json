@@ -1,8 +1,8 @@
 {
-		"name": "kibo-drumdrop",
+		"name": "kibo-drum-drop",
 		"version": "0.1.0",
 		"author": "Wouter Hisschemöller <email@hisschemoller.com>",
-		"description": "Kibo Drumdrop.",
+		"description": "Kibo Drum Drop.",
 		"private": true,
 		"dependencies": {
 				"planck-js": "^0.3.19",

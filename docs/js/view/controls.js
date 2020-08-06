@@ -2,7 +2,7 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { pitches } from '../utils/utils.js';
 import { NOTE_ON } from '../midi/midi.js';
 
-let rootEl, settingsBtn;
+let rootEl, settingsBtn, shapeEls;
 let resetKeyCombo = [];
 
 function addEventListeners() {
@@ -50,6 +50,26 @@ function addEventListeners() {
   settingsBtn.addEventListener('click',e => {
     dispatch(getActions().toggleSettings(true));
   });
+
+  shapeEls.forEach(shapeEl => {
+    console.log('shapeEl', shapeEl);
+    shapeEl.addEventListener('drag', e => {
+      e.preventDefault();
+      console.log('drag');
+    });
+    shapeEl.addEventListener('drop', e => {
+      e.preventDefault();
+      console.log('drop');
+    });
+    shapeEl.addEventListener('dragenter', e => {
+      e.preventDefault();
+      console.log('dragenter');
+    });
+    shapeEl.addEventListener('dragleave', e => {
+      e.preventDefault();
+      console.log('dragleave');
+    });
+  });
 }
 
 function handleStateChanges(e) {
@@ -61,5 +81,6 @@ function handleStateChanges(e) {
 export function setup() {
   rootEl = document.querySelector('#controls');
   settingsBtn = rootEl.querySelector('#controls__settings');
+  shapeEls = document.querySelectorAll('.shape');
   addEventListeners();
 }
