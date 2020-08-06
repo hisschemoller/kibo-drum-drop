@@ -4,6 +4,7 @@ import { NOTE_ON } from '../midi/midi.js';
 
 let rootEl, settingsBtn, shapeEls;
 let resetKeyCombo = [];
+let dragIndex = -1;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -52,23 +53,57 @@ function addEventListeners() {
   });
 
   shapeEls.forEach(shapeEl => {
-    console.log('shapeEl', shapeEl);
-    shapeEl.addEventListener('drag', e => {
-      e.preventDefault();
-      console.log('drag');
+    shapeEl.addEventListener('dragenter', handleDrag);
+    shapeEl.addEventListener('dragover', handleDrag);
+    shapeEl.addEventListener('dragleave', handleDragLeave);
+    shapeEl.addEventListener('drop', handleDrop);
+  });
+}
+
+function decodeBuffer(file) {
+  var fileReader = new FileReader();
+  fileReader.onload = function(fileEvent) {
+    var data = fileEvent.target.result;
+    options.context.decodeAudioData(data, function(buffer) {
+      options.drop(buffer, file);
+    }, function(e) {
+      console.error('There was an error decoding ' + file.name);
     });
-    shapeEl.addEventListener('drop', e => {
-      e.preventDefault();
-      console.log('drop');
-    });
-    shapeEl.addEventListener('dragenter', e => {
-      e.preventDefault();
-      console.log('dragenter');
-    });
-    shapeEl.addEventListener('dragleave', e => {
-      e.preventDefault();
-      console.log('dragleave');
-    });
+  };
+
+  fileReader.readAsArrayBuffer(file);
+}
+
+function handleDrag(e) {
+  e.preventDefault();
+  if (dragIndex > -1) {
+    shapeEls.item(dragIndex).classList.remove('shape--dragover');
+  }
+  dragIndex = Array.from(e.target.parentNode.children).indexOf(e.target);
+  shapeEls.item(dragIndex).classList.add('shape--dragover');
+  console.log('drag', dragIndex);
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  if (dragIndex > -1) {
+    shapeEls.item(dragIndex).classList.remove('shape--dragover');
+  }
+  dragIndex = -1;
+  console.log('dragleave', index);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  if (dragIndex > -1) {
+    shapeEls.item(dragIndex).classList.remove('shape--dragover');
+  }
+  
+  const droppedFiles = Array.prototype.slice.call(e.dataTransfer.files);
+  droppedFiles.forEach( function(file) {
+    if (file.type.indexOf('audio') > -1) {
+      decodeBuffer(file);
+    }
   });
 }
 
