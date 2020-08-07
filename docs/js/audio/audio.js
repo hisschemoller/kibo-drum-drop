@@ -34,6 +34,14 @@ function createVoices() {
 }
 
 /**
+ * Provide the AudioContext.
+ * @returns {Object} AudioContext.
+ */
+export function getContext() {
+  return audioCtx;
+}
+
+/**
  * Handle MIDI message.
  * @param {Object} state Application state.
  */
@@ -61,13 +69,13 @@ function handleStateChanges(e) {
 	const { state, action, actions, } = e.detail;
 	switch (action.type) {
 
-		case actions.TOGGLE_SETTINGS:
-			initialiseAudio(state);
-			break;
-
 		case actions.PLAY_NOTE:
 		case actions.PLAY_NOTE_COLLISION:
 			playNote(state);
+			break;
+
+		case actions.TOGGLE_SETTINGS:
+			initialiseAudio(state);
 			break;
 	}
 }

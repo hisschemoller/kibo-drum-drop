@@ -26,7 +26,6 @@ function addEventListeners() {
           break;
         
         case 87: // w
-          console.log('world', getWorld());
           console.log('state', getState());
           break;
         
@@ -90,21 +89,22 @@ function handleDragLeave(e) {
     shapeEls.item(dragIndex).classList.remove('shape--dragover');
   }
   dragIndex = -1;
-  console.log('dragleave', index);
+  console.log('dragleave', dragIndex);
 }
 
 function handleDrop(e) {
   e.preventDefault();
   if (dragIndex > -1) {
-    shapeEls.item(dragIndex).classList.remove('shape--dragover');
+    dispatch(getActions().loadAudioFile(e.dataTransfer.files, dragIndex));
+    // shapeEls.item(dragIndex).classList.remove('shape--dragover');
   }
   
-  const droppedFiles = Array.prototype.slice.call(e.dataTransfer.files);
-  droppedFiles.forEach( function(file) {
-    if (file.type.indexOf('audio') > -1) {
-      decodeBuffer(file);
-    }
-  });
+  // const droppedFiles = Array.prototype.slice.call(e.dataTransfer.files);
+  // droppedFiles.forEach( function(file) {
+  //   if (file.type.indexOf('audio') > -1) {
+  //     decodeBuffer(file);
+  //   }
+  // });
 }
 
 function handleStateChanges(e) {

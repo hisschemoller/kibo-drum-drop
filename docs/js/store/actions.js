@@ -6,6 +6,7 @@ const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
 const BLUETOOTH_ERROR = 'BLUETOOTH_ERROR';
 const BLUETOOTH_SUCCESS = 'BLUETOOTH_SUCCESS';
 const DELETE_BODIES = 'DELETE_BODIES';
+const LOAD_AUDIOFILE = 'LOAD_AUDIOFILE';
 const NEW_PROJECT = 'NEW_PROJECT';
 const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
@@ -33,6 +34,19 @@ export default {
 
   DELETE_BODIES,
   deleteBodies: bodyIds => ({ type: DELETE_BODIES, bodyIds }),
+  
+  LOAD_AUDIOFILE,
+  loadAudioFile: (files, padIndex) => {
+    const file = files[0];
+    if (file.type.indexOf('audio') > -1) {
+      return {
+        type: LOAD_AUDIOFILE,
+        file,
+        name: file.name,
+        padIndex,
+      };
+    }
+  },
   
   NEW_PROJECT,
   newProject: () => ({ type: NEW_PROJECT, }),

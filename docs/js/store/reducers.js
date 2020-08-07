@@ -1,15 +1,7 @@
 
 const initialState = {
-  bodies: {
-    allIds: [],
-    byId: {},
-  },
   isMIDIAccessible: false,
   isSettingsVisible: false,
-  joints: {
-    allIds: [],
-    byId: {},
-  },
   midiInputs: [],
   midiOutputs: [],
   midiSelectedInput: null,
@@ -20,8 +12,7 @@ const initialState = {
     octave: 0,
     velocity: 0,
   },
-  visibleHeight: 0,
-  visibleWidth: 0,
+  pads: [],
 };
 
 /**
@@ -33,65 +24,33 @@ const initialState = {
 export default function reduce(state = initialState, action, actions = {}) {
   switch (action.type) {
 
-    case actions.DELETE_BODIES: {
-      const { bodyIds } = action;
+    case actions.LOAD_AUDIOFILE: {
+      const { name, padIndex, } = action;
+      const { pads, } = state;
       return { 
-        ...state, 
-        bodies: {
-          allIds: [ 
-            ...state.bodies.allIds.reduce((accumulator, bodyId) => {
-              if (bodyIds.includes(bodyId)) {
-                return accumulator;
-              }
-              return [ ...accumulator, bodyId ];
-            }, []),
-          ],
-          byId: { 
-            ...state.bodies.allIds.reduce((accumulator, bodyId) => {
-              if (bodyIds.includes(bodyId)) {
-                return accumulator;
-              }
-              return { ...accumulator, [bodyId]: { ...state.bodies.byId[bodyId] } };
-            }, {}),
-          }
-        },
+        ...state,
+        pads: pads.reduce((accumulator, index) => {
+          return (index === padIndex) ? { name, } : pads[index];
+        }, []),
       };
     }
 
     case actions.NEW_PROJECT: {
-      const { bodies } = action;
-      const { isMIDIAccessible, midiInputs = [], midiOutputs = [], visibleHeight, visibleWidth } = state;
+      const { isMIDIAccessible, midiInputs = [], midiOutputs = [], } = state;
       return { 
         ...initialState,
-        bodies,
         isMIDIAccessible,
-        joints: {
-          allIds: [],
-          byId: {},
-        },
         midiInputs, 
-        midiOutputs, 
-        visibleHeight,
-        visibleWidth,
+        midiOutputs,
+        pads: [],
       };
     }
 
     case actions.PLAY_NOTE: {
-      const { body, bodyId, circleArea, index, octave, originalVelocity, velocity } = action;
+      const { circleArea, index, octave, originalVelocity, velocity } = action;
       return { 
         ...state,
-        bodies: {
-          allIds: [ ...state.bodies.allIds, bodyId ],
-          byId: { 
-            ...state.bodies.allIds.reduce((accumulator, bodyId) => {
-              accumulator[bodyId] = { ...state.bodies.byId[bodyId] };
-              return accumulator;
-            }, {}),
-            [bodyId]: body,
-          }
-        }, 
         note: {
-          bodyId,
           circleArea,
           index,
           octave,
@@ -99,16 +58,6 @@ export default function reduce(state = initialState, action, actions = {}) {
           velocity,
         },
       };
-    }
-
-    case actions.POPULATE: {
-      const { bodies } = action;
-      return { ...state, bodies, };
-    }
-
-    case actions.RESIZE: {
-      const { visibleWidth, visibleHeight } = action;
-      return { ...state, visibleWidth, visibleHeight };
     }
 
     case actions.SELECT_MIDI_INPUT: {
@@ -121,24 +70,14 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.SET_PROJECT: {
-      const { isMIDIAccessible, midiInputs = [], midiOutputs = [], visibleWidth, visibleHeight } = state;
+      const { isMIDIAccessible, midiInputs = [], midiOutputs = [], } = state;
       return { 
         ...initialState,
-        bodies: {
-          allIds: [],
-          byId: {},
-        },
-        joints: {
-          allIds: [],
-          byId: {},
-        },
         ...state, 
         ...action.state,
         isMIDIAccessible, 
         midiInputs, 
-        midiOutputs, 
-        visibleHeight, 
-        visibleWidth,
+        midiOutputs,
       };
     }
 
