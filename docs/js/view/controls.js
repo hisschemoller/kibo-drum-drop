@@ -80,7 +80,6 @@ function handleDrag(e) {
   }
   dragIndex = Array.from(e.target.parentNode.children).indexOf(e.target);
   shapeEls.item(dragIndex).classList.add('shape--dragover');
-  console.log('drag', dragIndex);
 }
 
 function handleDragLeave(e) {
@@ -89,22 +88,13 @@ function handleDragLeave(e) {
     shapeEls.item(dragIndex).classList.remove('shape--dragover');
   }
   dragIndex = -1;
-  console.log('dragleave', dragIndex);
 }
 
 function handleDrop(e) {
   e.preventDefault();
   if (dragIndex > -1) {
     dispatch(getActions().loadAudioFile(e.dataTransfer.files, dragIndex));
-    // shapeEls.item(dragIndex).classList.remove('shape--dragover');
   }
-  
-  // const droppedFiles = Array.prototype.slice.call(e.dataTransfer.files);
-  // droppedFiles.forEach( function(file) {
-  //   if (file.type.indexOf('audio') > -1) {
-  //     decodeBuffer(file);
-  //   }
-  // });
 }
 
 function handleStateChanges(e) {

@@ -1,5 +1,6 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { lowestOctave, numOctaves, pitches } from '../utils/utils.js';
+import { getBuffer } from './buffers.js';
 
 const NOTE_ON = 144;
 const NOTE_OFF = 128;
@@ -18,15 +19,9 @@ function createVoices() {
 		const gain = audioCtx.createGain();
 		gain.connect(audioCtx.destination);
 
-		const gain2 = audioCtx.createGain();
-		gain2.connect(audioCtx.destination);
-
 		voices.push({
 			isPlaying: false,
 			gain,
-			gain2,
-			osc: null,
-			osc2: null,
 			source: null,
 			timerId: null,
 		});
@@ -114,18 +109,24 @@ function playNote(state) {
 	if (audioCtx) {
 		// startNote(0, pitch, velocity);
 		// stopNote(0.5, pitch, velocity);
-		startOneShot(0, pitch, velocity, noteDuration);
+		startOneShot(0, index, velocity, noteDuration);
 	}
 }
 
 /**
  * Play a sound of fixed length.
  * @param {Number} nowToStartInSecs 
- * @param {Number} pitch 
+ * @param {Number} index Pad index. 
  * @param {Number} velocity 
  * @param {Number} duration 
  */
-function startOneShot(nowToStartInSecs, pitch, velocity, duration) {
+function startOneShot(nowToStartInSecs, index, velocity, duration) {
+	const buffer = getBuffer(index);
+
+	if (!buffer) {
+		return;
+	}
+
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
 
@@ -137,21 +138,16 @@ function startOneShot(nowToStartInSecs, pitch, velocity, duration) {
 	const startTime = audioCtx.currentTime + nowToStartInSecs;
 	voice.isPlaying = true;
 
-	voice.osc = audioCtx.createOscillator();
-	voice.osc.type = 'sine';
-	voice.osc.frequency.setValueAtTime(mtof(pitch), startTime);
-	voice.osc.connect(voice.gain);
-	voice.osc.start(startTime);
+	voice.source = audioCtx.createBufferSource();
+  voice.source.buffer = buffer;
+	voice.source.connect(voice.gain);
+	voice.source.start(startTime);
 	voice.gain.gain.setValueAtTime(gainLevel, startTime);
 	voice.gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
-	voice.osc2 = audioCtx.createOscillator();
-	voice.osc2.type = 'triangle';
-	voice.osc2.frequency.setValueAtTime(mtof(pitch), startTime);
-	voice.osc2.connect(voice.gain2);
-	voice.osc2.start(startTime);
-	voice.gain2.gain.setValueAtTime(gainLevel * 0.5, startTime);
-	voice.gain2.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  voice.source.onended = function(e) {
+    stopOneShot(voice);
+  };
 
 	voice.timerId = setTimeout(stopOneShot, duration * 1000, voice);
 }
@@ -165,8 +161,8 @@ function stopOneShot(voice) {
 		clearTimeout(voice.timerId);
 	}
 
-	voice.osc.stop(audioCtx.currentTime);
-	voice.osc2.stop(audioCtx.currentTime);
+	voice.source.stop(audioCtx.currentTime);
+	voice.source.disconnect();
 	voice.isPlaying = false;
 	voice.timerId = null;
 }
