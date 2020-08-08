@@ -59,20 +59,6 @@ function addEventListeners() {
   });
 }
 
-function decodeBuffer(file) {
-  var fileReader = new FileReader();
-  fileReader.onload = function(fileEvent) {
-    var data = fileEvent.target.result;
-    options.context.decodeAudioData(data, function(buffer) {
-      options.drop(buffer, file);
-    }, function(e) {
-      console.error('There was an error decoding ' + file.name);
-    });
-  };
-
-  fileReader.readAsArrayBuffer(file);
-}
-
 function handleDrag(e) {
   e.preventDefault();
   if (dragIndex > -1) {

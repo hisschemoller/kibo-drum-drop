@@ -1,4 +1,13 @@
+@import 'dialog.css';
 @import 'settings.css';
+
+:root {
+  --bg-color: #fff;
+  --btn-active-bg-color: #aaa;
+  --btn-active-color: #333;
+  --btn-bg-color: #ccc;
+  --btn-color: #999;
+}
 
 *, *:before, *:after {
   box-sizing: border-box;

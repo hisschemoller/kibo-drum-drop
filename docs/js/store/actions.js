@@ -1,5 +1,6 @@
 import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
 import { NOTE_OFF } from '../midi/midi.js';
+import { showDialog } from '../view/dialog.js';
 
 const BLUETOOTH_CONNECT = 'BLUETOOTH_CONNECT';
 const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
@@ -37,15 +38,27 @@ export default {
   
   LOAD_AUDIOFILE,
   loadAudioFile: (files, padIndex) => {
-    const file = files[0];
-    if (file.type.indexOf('audio') > -1) {
-      return {
-        type: LOAD_AUDIOFILE,
-        file,
-        name: file.name,
-        padIndex,
-      };
-    }
+    return (dispatch, getState, getActions) => {
+      const file = files[0];
+      if (file.type.indexOf('audio') === -1) {
+        showDialog(
+          'No audio file', 
+          `This file wasn't recognised as an audio file.`,
+          'Ok');
+      } else if (file.size > 1000000) {
+        showDialog(
+          'File too big', 
+          `Files up to 1 MB are allowed.`,
+          'Ok');
+      } else {
+        return {
+          type: LOAD_AUDIOFILE,
+          file,
+          name: file.name,
+          padIndex,
+        };
+      }
+    };
   },
   
   NEW_PROJECT,
