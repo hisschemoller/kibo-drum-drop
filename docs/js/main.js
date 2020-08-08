@@ -1,6 +1,5 @@
 import { dispatch, getActions, getState, persist } from './store/store.js';
 import { setup as setupAudio } from './audio/audio.js';
-import { setup as setupBuffers } from './audio/buffers.js';
 import { accessMidi, setup as setupMidi, } from './midi/midi.js';
 import { setup as setupBluetooth } from './bluetooth/bluetooth.js';
 import { setup as setupControls } from './view/controls.js';
@@ -16,7 +15,6 @@ async function main() {
     console.log('Error', error);
   } finally {
     setupAudio();
-    setupBuffers();
     setupDialog();
     setupSettings();
     setupControls();

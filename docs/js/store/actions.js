@@ -1,6 +1,7 @@
 import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
 import { NOTE_OFF } from '../midi/midi.js';
 import { showDialog } from '../view/dialog.js';
+import { getContext } from '../audio/audio.js';
 
 const BLUETOOTH_CONNECT = 'BLUETOOTH_CONNECT';
 const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
@@ -40,23 +41,33 @@ export default {
   loadAudioFile: (files, padIndex) => {
     return (dispatch, getState, getActions) => {
       const file = files[0];
-      if (file.type.indexOf('audio') === -1) {
+      const { name, size, type } = file;
+      if (type.indexOf('audio') === -1) {
         showDialog(
           'No audio file', 
           `This file wasn't recognised as an audio file.`,
           'Ok');
-      } else if (file.size > 1000000) {
+      } else if (size > 1000000) {
         showDialog(
           'File too big', 
           `Files up to 1 MB are allowed.`,
           'Ok');
       } else {
-        return {
-          type: LOAD_AUDIOFILE,
-          file,
-          name: file.name,
-          padIndex,
+        const ctx = getContext();
+        const fileReader = new FileReader();
+
+        fileReader.onload = e => {
+          ctx.decodeAudioData(e.target.result).then((buffer) => {
+            dispatch({
+              type: LOAD_AUDIOFILE,
+              buffer,
+              name,
+              padIndex,
+            });
+          });
         };
+
+        fileReader.readAsArrayBuffer(file);
       }
     };
   },
@@ -67,32 +78,20 @@ export default {
   PLAY_NOTE,
   playNote: (command, channel, pitch, velocity) => {
     return (dispatch, getState, getActions) => {
-      const { visibleWidth, visibleHeight, } = getState();
+      const { pads, visibleWidth, visibleHeight, } = getState();
       const index = pitches.indexOf(pitch);
 
-      if (index === -1 || velocity === 0 || command === NOTE_OFF) {
+      if (index === -1 || velocity === 0 || command === NOTE_OFF || !pads[index]) {
         return;
       }
 
-      const octave = lowestOctave + Math.floor((velocity / 127) * numOctaves);
-      const radius = (visibleHeight * 0.06) - (((octave - lowestOctave) / numOctaves) * (visibleHeight * 0.05));
-      const circleArea = Math.PI * (radius ** 2);
+      const { buffer } = pads[index];
 
       return {
         type: PLAY_NOTE,
-        bodyId: createUUID(),
-        circleArea,
+        buffer,
         index,
-        octave,
-        originalVelocity: velocity,
-        velocity: 120,
-        body: {
-          fixtures: [
-            { type: 'circle', r: radius, d: 0.01 },
-          ],
-          x: visibleWidth * ((index / 8 ) - ( 7 / 16)),
-          y: visibleHeight * -0.5,
-        },
+        velocity,
       };
     };
   },

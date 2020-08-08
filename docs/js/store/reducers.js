@@ -6,13 +6,11 @@ const initialState = {
   midiOutputs: [],
   midiSelectedInput: null,
   note: {
-    circleArea: 0,
     id: null,
     index: 0,
-    octave: 0,
     velocity: 0,
   },
-  pads: [],
+  pads: [null, null, null, null, null, null, null, null, ],
 };
 
 /**
@@ -25,12 +23,12 @@ export default function reduce(state = initialState, action, actions = {}) {
   switch (action.type) {
 
     case actions.LOAD_AUDIOFILE: {
-      const { name, padIndex, } = action;
+      const { buffer, name, padIndex, } = action;
       const { pads, } = state;
       return { 
         ...state,
-        pads: pads.reduce((accumulator, index) => {
-          return (index === padIndex) ? { name, } : pads[index];
+        pads: pads.reduce((accumulator, pad, index) => {
+          return [ ...accumulator, (index === padIndex) ? { buffer, name, } : pads[index] ];
         }, []),
       };
     }
@@ -42,19 +40,17 @@ export default function reduce(state = initialState, action, actions = {}) {
         isMIDIAccessible,
         midiInputs, 
         midiOutputs,
-        pads: [],
+        pads: [null, null, null, null, null, null, null, null, ],
       };
     }
 
     case actions.PLAY_NOTE: {
-      const { circleArea, index, octave, originalVelocity, velocity } = action;
+      const { buffer, index, velocity } = action;
       return { 
         ...state,
         note: {
-          circleArea,
+          buffer,
           index,
-          octave,
-          originalVelocity,
           velocity,
         },
       };

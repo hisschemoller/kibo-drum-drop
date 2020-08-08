@@ -1,6 +1,5 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { lowestOctave, numOctaves, pitches } from '../utils/utils.js';
-import { getBuffer } from './buffers.js';
 
 const NOTE_ON = 144;
 const NOTE_OFF = 128;
@@ -65,7 +64,6 @@ function handleStateChanges(e) {
 	switch (action.type) {
 
 		case actions.PLAY_NOTE:
-		case actions.PLAY_NOTE_COLLISION:
 			playNote(state);
 			break;
 
@@ -104,12 +102,11 @@ function mtof(midi) {
  * @param {Object} state Application state.
  */
 function playNote(state) {
-	const { bodyId, index, octave, velocity } = state.note;
-	const pitch = (pitches[index] - pitches[0]) + (octave * 12);
-	if (audioCtx) {
+	const { buffer, index, velocity } = state.note;
+	if (audioCtx && buffer) {
 		// startNote(0, pitch, velocity);
 		// stopNote(0.5, pitch, velocity);
-		startOneShot(0, index, velocity, noteDuration);
+		startOneShot(0, index, velocity, noteDuration, buffer);
 	}
 }
 
@@ -119,14 +116,9 @@ function playNote(state) {
  * @param {Number} index Pad index. 
  * @param {Number} velocity 
  * @param {Number} duration 
+ * @param {Object} buffer Audiobuffer 
  */
-function startOneShot(nowToStartInSecs, index, velocity, duration) {
-	const buffer = getBuffer(index);
-
-	if (!buffer) {
-		return;
-	}
-
+function startOneShot(nowToStartInSecs, index, velocity, duration, buffer) {
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
 
