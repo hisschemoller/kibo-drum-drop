@@ -25,6 +25,7 @@ export default function reduce(state = initialState, action, actions = {}) {
     case actions.LOAD_AUDIOFILE: {
       const { buffer, name, padIndex, } = action;
       const { pads, } = state;
+      console.log(buffer);
       return { 
         ...state,
         pads: pads.reduce((accumulator, pad, index) => {

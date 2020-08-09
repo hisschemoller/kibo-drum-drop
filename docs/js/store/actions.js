@@ -57,13 +57,12 @@ export default {
         const fileReader = new FileReader();
 
         fileReader.onload = e => {
-          ctx.decodeAudioData(e.target.result).then((buffer) => {
-            dispatch({
-              type: LOAD_AUDIOFILE,
-              buffer,
-              name,
-              padIndex,
-            });
+          console.log(e.target.result);
+          dispatch({
+            type: LOAD_AUDIOFILE,
+            buffer: e.target.result,
+            name,
+            padIndex,
           });
         };
 
@@ -99,29 +98,29 @@ export default {
   POPULATE,
   populate: () => {
     return (dispatch, getState, getActions) => {
-      const { visibleWidth, visibleHeight, } = getState();
-      const floorId = `FLOOR_${createUUID()}`;
-      const ceilingId = `CEILING_${createUUID()}`;
-      return { 
-        type: POPULATE, 
-        bodies: {
-          allIds: [ floorId, ceilingId ],
-          byId: {
-            [floorId]: {
-              fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
-              x: 0,
-              y: visibleHeight * -0.4,
-              type: 'static',
-            },
-            [ceilingId]: {
-              fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
-              x: 0,
-              y: visibleHeight * 0.5,
-              type: 'static',
-            },
-          },
-        },
-      };
+      // const { visibleWidth, visibleHeight, } = getState();
+      // const floorId = `FLOOR_${createUUID()}`;
+      // const ceilingId = `CEILING_${createUUID()}`;
+      // return { 
+      //   type: POPULATE, 
+      //   bodies: {
+      //     allIds: [ floorId, ceilingId ],
+      //     byId: {
+      //       [floorId]: {
+      //         fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
+      //         x: 0,
+      //         y: visibleHeight * -0.4,
+      //         type: 'static',
+      //       },
+      //       [ceilingId]: {
+      //         fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
+      //         x: 0,
+      //         y: visibleHeight * 0.5,
+      //         type: 'static',
+      //       },
+      //     },
+      //   },
+      // };
     };
   },
 

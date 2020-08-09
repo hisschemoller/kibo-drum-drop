@@ -7,8 +7,23 @@ const numVoices = 84;
 const pitchRange = new Array(127).fill(null);
 const voices = [];
 const noteDuration = 0.5;
+const buffers = [];
 let audioCtx;
 let voiceIndex = 0;
+
+function addAudioBuffer(state) {
+	const { pads } = state;
+	pads.map((pad, index) => {
+		if (pad) {
+			const { buffer, name } = pad;
+			if (!buffers[index] || buffers[index].name !== name) {
+				audioCtx.decodeAudioData(buffer).then(buffer => {
+					buffers[index] = { name, buffer, };
+				});
+			}
+		}
+	});
+}
 
 /**
  * Create the bank of reusable voice objects.
@@ -63,6 +78,10 @@ function handleStateChanges(e) {
 	const { state, action, actions, } = e.detail;
 	switch (action.type) {
 
+		case actions.LOAD_AUDIOFILE:
+			addAudioBuffer(state);
+			break;
+
 		case actions.PLAY_NOTE:
 			playNote(state);
 			break;
@@ -102,11 +121,11 @@ function mtof(midi) {
  * @param {Object} state Application state.
  */
 function playNote(state) {
-	const { buffer, index, velocity } = state.note;
-	if (audioCtx && buffer) {
+	const { index, velocity } = state.note;
+	if (audioCtx) {
 		// startNote(0, pitch, velocity);
 		// stopNote(0.5, pitch, velocity);
-		startOneShot(0, index, velocity, noteDuration, buffer);
+		startOneShot(0, index, velocity, noteDuration);
 	}
 }
 
@@ -116,9 +135,13 @@ function playNote(state) {
  * @param {Number} index Pad index. 
  * @param {Number} velocity 
  * @param {Number} duration 
- * @param {Object} buffer Audiobuffer 
  */
-function startOneShot(nowToStartInSecs, index, velocity, duration, buffer) {
+function startOneShot(nowToStartInSecs, index, velocity, duration) {
+	const buffer = buffers[index].buffer;
+	if (!buffer) {
+		return;
+	}
+
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
 
