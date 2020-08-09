@@ -37,9 +37,11 @@ export function persist() {
     localStorage.setItem(name, JSON.stringify(currentState));
   });
   let data = localStorage.getItem(name);
-  if (data && data !== 'undefined' && typeof data === 'object') {
+  if (data && data !== 'undefined') {
     const persistedState = JSON.parse(data);
-    dispatch(actions.setProject(persistedState));
+    if (typeof persistedState === 'object') {
+      dispatch(actions.setProject(persistedState));
+    }
   } else {
 
     // start with the initial state

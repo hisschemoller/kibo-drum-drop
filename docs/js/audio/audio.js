@@ -11,28 +11,6 @@ const buffers = [];
 let audioCtx;
 let voiceIndex = 0;
 
-function addAudioBuffer(state) {
-	const { pads } = state;
-	pads.map((pad, index) => {
-		if (pad) {
-			const { buffer: bufferStr, name } = pad;
-			if (!buffers[index] || buffers[index].name !== name) {
-
-				// convert string to audiobuffer
-				const arrayBuffer = new ArrayBuffer(bufferStr.length);
-				const dataView = new DataView(arrayBuffer);
-				for (let i = 0, n = arrayBuffer.byteLength; i < n; i++) {
-					dataView.setUint8(i, bufferStr.charCodeAt(i));
-				}
-
-				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
-					buffers[index] = { name, buffer, };
-				});
-			}
-		}
-	});
-}
-
 /**
  * Create the bank of reusable voice objects.
  */
@@ -87,7 +65,7 @@ function handleStateChanges(e) {
 	switch (action.type) {
 
 		case actions.LOAD_AUDIOFILE:
-			addAudioBuffer(state);
+			updateAudioBuffers(state);
 			break;
 
 		case actions.PLAY_NOTE:
@@ -110,6 +88,7 @@ function initialiseAudio(state) {
 	if (!audioCtx && !isSettingsVisible) {
 		audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 		createVoices();
+		updateAudioBuffers(state);
 	}
 }
 
@@ -234,4 +213,30 @@ function stopNote(nowToStopInSecs, pitch, velocity) {
 		pitchRange[pitch].isPlaying = false;
 		pitchRange[pitch] = null;
 	}
+}
+
+/**
+ * 
+ * @param {Object} state Application state.
+ */
+function updateAudioBuffers(state) {
+	const { pads } = state;
+	pads.map((pad, index) => {
+		if (pad) {
+			const { buffer: bufferStr, name } = pad;
+			if (!buffers[index] || buffers[index].name !== name) {
+
+				// convert string to audiobuffer
+				const arrayBuffer = new ArrayBuffer(bufferStr.length);
+				const dataView = new DataView(arrayBuffer);
+				for (let i = 0, n = arrayBuffer.byteLength; i < n; i++) {
+					dataView.setUint8(i, bufferStr.charCodeAt(i));
+				}
+
+				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
+					buffers[index] = { name, buffer, };
+				});
+			}
+		}
+	});
 }

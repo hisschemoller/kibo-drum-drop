@@ -1,7 +1,6 @@
 import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
 import { NOTE_OFF } from '../midi/midi.js';
 import { showDialog } from '../view/dialog.js';
-import { getContext } from '../audio/audio.js';
 
 const BLUETOOTH_CONNECT = 'BLUETOOTH_CONNECT';
 const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
@@ -53,16 +52,13 @@ export default {
           `Files up to 1 MB are allowed.`,
           'Ok');
       } else {
-        const ctx = getContext();
         const fileReader = new FileReader();
 
         fileReader.onload = e => {
-          console.log('e.target.result', e.target.result.byteLength, e.target.result);
           
           // convert arrayBuffer to string
           // @see https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
           const buffer = String.fromCharCode.apply(null, new Uint8Array(e.target.result));
-          console.log('buffer.length', buffer.length);
           
           dispatch({
             type: LOAD_AUDIOFILE,
@@ -102,33 +98,7 @@ export default {
   },
 
   POPULATE,
-  populate: () => {
-    return (dispatch, getState, getActions) => {
-      // const { visibleWidth, visibleHeight, } = getState();
-      // const floorId = `FLOOR_${createUUID()}`;
-      // const ceilingId = `CEILING_${createUUID()}`;
-      // return { 
-      //   type: POPULATE, 
-      //   bodies: {
-      //     allIds: [ floorId, ceilingId ],
-      //     byId: {
-      //       [floorId]: {
-      //         fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
-      //         x: 0,
-      //         y: visibleHeight * -0.4,
-      //         type: 'static',
-      //       },
-      //       [ceilingId]: {
-      //         fixtures: [ { w: visibleWidth, h: 0.01, d: 0.01, } ],
-      //         x: 0,
-      //         y: visibleHeight * 0.5,
-      //         type: 'static',
-      //       },
-      //     },
-      //   },
-      // };
-    };
-  },
+  populate: () => ({ type: POPULATE }),
 
   RESIZE,
   resize: (visibleWidth, visibleHeight) => ({ type: RESIZE, visibleWidth, visibleHeight }),
