@@ -57,10 +57,16 @@ export default {
         const fileReader = new FileReader();
 
         fileReader.onload = e => {
-          console.log(e.target.result);
+          console.log('e.target.result', e.target.result.byteLength, e.target.result);
+          
+          // convert arrayBuffer to string
+          // @see https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
+          const buffer = String.fromCharCode.apply(null, new Uint8Array(e.target.result));
+          console.log('buffer.length', buffer.length);
+          
           dispatch({
             type: LOAD_AUDIOFILE,
-            buffer: e.target.result,
+            buffer,
             name,
             padIndex,
           });

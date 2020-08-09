@@ -15,9 +15,17 @@ function addAudioBuffer(state) {
 	const { pads } = state;
 	pads.map((pad, index) => {
 		if (pad) {
-			const { buffer, name } = pad;
+			const { buffer: bufferStr, name } = pad;
 			if (!buffers[index] || buffers[index].name !== name) {
-				audioCtx.decodeAudioData(buffer).then(buffer => {
+
+				// convert string to audiobuffer
+				const arrayBuffer = new ArrayBuffer(bufferStr.length);
+				const dataView = new DataView(arrayBuffer);
+				for (let i = 0, n = arrayBuffer.byteLength; i < n; i++) {
+					dataView.setUint8(i, bufferStr.charCodeAt(i));
+				}
+
+				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
 					buffers[index] = { name, buffer, };
 				});
 			}
