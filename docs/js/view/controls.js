@@ -1,6 +1,6 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { pitches } from '../utils/utils.js';
-import { NOTE_ON } from '../midi/midi.js';
+import { NOTE_ON, NOTE_OFF } from '../midi/midi.js';
 
 let rootEl, settingsBtn, shapeEls;
 let resetKeyCombo = [];
@@ -43,8 +43,25 @@ function addEventListeners() {
     }
   });
 
-  document.addEventListener('keyup', () => {
+  document.addEventListener('keyup', e => {
     resetKeyCombo.length = 0;
+
+    // don't perform shortcuts while typing in a text input.
+    if (!(e.target.tagName.toLowerCase() == 'input' && e.target.getAttribute('type') == 'text')) {
+      switch (e.keyCode) {
+        
+        case 49: // 1
+        case 50:
+        case 51:
+        case 52:
+        case 53:
+        case 54:
+        case 55:
+        case 56: // 8
+          dispatch(getActions().playNote(NOTE_OFF, 1, pitches[e.keyCode - 49], 0));
+          break;
+      }
+    }
   });
 
   settingsBtn.addEventListener('click',e => {
@@ -79,6 +96,7 @@ function handleDragLeave(e) {
 function handleDrop(e) {
   e.preventDefault();
   if (dragIndex > -1) {
+    shapeEls.item(dragIndex).classList.remove('shape--dragover');
     dispatch(getActions().loadAudioFile(e.dataTransfer.files, dragIndex));
   }
 }
@@ -86,6 +104,27 @@ function handleDrop(e) {
 function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
+
+    case actions.PLAY_NOTE:
+      playNote(state);
+      break;
+    
+		case actions.LOAD_AUDIOFILE:
+    case actions.SET_PROJECT:
+			updateShapes(state);
+			break;
+  }
+}
+
+function playNote(state) {
+  const { note } = state;
+  const { command, index, velocity } = note;
+  if (index > -1) {
+    if (command === NOTE_ON) {
+      shapeEls.item(index).classList.add('shape--play');
+    } else {
+      shapeEls.item(index).classList.remove('shape--play');
+    }
   }
 }
 
@@ -94,4 +133,16 @@ export function setup() {
   settingsBtn = rootEl.querySelector('#controls__settings');
   shapeEls = document.querySelectorAll('.shape');
   addEventListeners();
+}
+
+function updateShapes(state) {
+  const { note, pads } = state;
+  const { index } = note;
+  shapeEls.forEach((shapeEl, index) => {
+    if (pads[index]) {
+      shapeEl.classList.add('shape--assigned');
+    } else {
+      shapeEl.classList.remove('shape--assigned');
+    }
+  });
 }

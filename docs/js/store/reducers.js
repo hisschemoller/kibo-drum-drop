@@ -45,11 +45,11 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.PLAY_NOTE: {
-      const { buffer, index, velocity } = action;
+      const { command, index, velocity } = action;
       return { 
         ...state,
         note: {
-          buffer,
+          command,
           index,
           velocity,
         },

@@ -65,12 +65,8 @@ function onMIDIMessage(e) {
 			// onControlChangeMessage(e);
 			break;
 		case NOTE_ON:
+    case NOTE_OFF:
 			dispatch(getActions().playNote(e.data[0] & 0xf0, e.data[0] & 0x0f, e.data[1], e.data[2]));
-      break;
-    
-		case NOTE_OFF:
-
-      // percussive, ignore note off
       break;
 	}
 }

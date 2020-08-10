@@ -82,15 +82,13 @@ export default {
       const { pads, visibleWidth, visibleHeight, } = getState();
       const index = pitches.indexOf(pitch);
 
-      if (index === -1 || velocity === 0 || command === NOTE_OFF || !pads[index]) {
+      if (index === -1) {
         return;
       }
 
-      const { buffer } = pads[index];
-
       return {
         type: PLAY_NOTE,
-        buffer,
+        command,
         index,
         velocity,
       };

@@ -108,8 +108,8 @@ function mtof(midi) {
  * @param {Object} state Application state.
  */
 function playNote(state) {
-	const { index, velocity } = state.note;
-	if (audioCtx) {
+	const { command, index, velocity } = state.note;
+	if (audioCtx && command === NOTE_ON && velocity != 0) {
 		// startNote(0, pitch, velocity);
 		// stopNote(0.5, pitch, velocity);
 		startOneShot(0, index, velocity, noteDuration);
@@ -124,10 +124,11 @@ function playNote(state) {
  * @param {Number} duration 
  */
 function startOneShot(nowToStartInSecs, index, velocity, duration) {
-	const buffer = buffers[index].buffer;
-	if (!buffer) {
+	if (!buffers[index]) {
 		return;
 	}
+
+	const buffer = buffers[index].buffer;
 
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;

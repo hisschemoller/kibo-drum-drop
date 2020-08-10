@@ -67,8 +67,16 @@ body {
   top: 0;
 }
 .shape--dragover:after {
-  background-color: #eee;
   border: 4px dotted #666;
+}
+.shape--assigned:after {
+  background-color: #eee;
+}
+.shape--play:after {
+  background-color: #eee;
+}
+.shape--assigned.shape--play:after {
+  background-color: #ccc;
 }
 .shape:nth-of-type(1):before {
   background-image: url('../img/shape0.svg');
