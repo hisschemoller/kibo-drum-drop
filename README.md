@@ -8,6 +8,7 @@ A small drum sample player as a web app. To use with the [Kodaly Kibo](https://w
 * Play MIDI notes or computer keyboard keys 1 to 8.
 * Drag samples from the desktop and drop on the pads on screen.
 * Samples are stored in the browser's local storage, they remain playable even if the browser is closed and reopened, and even if the original audio files are deleted from the computer.
+* Maximum size is 1MB per audio file to ensure they can be stored.
 
 ## Kodaly Kibo
 
