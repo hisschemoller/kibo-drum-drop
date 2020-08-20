@@ -11,6 +11,7 @@ const initialState = {
     velocity: 0,
   },
   pads: [null, null, null, null, null, null, null, null, ],
+  selectedIndex: -1,
 };
 
 /**
@@ -30,6 +31,7 @@ export default function reduce(state = initialState, action, actions = {}) {
         pads: pads.reduce((accumulator, pad, index) => {
           return [ ...accumulator, (index === padIndex) ? { buffer, name, } : pads[index] ];
         }, []),
+        selectedIndex: padIndex,
       };
     }
 

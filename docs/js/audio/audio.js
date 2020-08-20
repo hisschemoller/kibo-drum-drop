@@ -29,11 +29,11 @@ function createVoices() {
 }
 
 /**
- * Provide the AudioContext.
- * @returns {Object} AudioContext.
+ * Provide an audiobuffer.
+ * @returns {Object} AudioBuffer.
  */
-export function getContext() {
-  return audioCtx;
+export function getBuffer(index) {
+  return buffers[index].buffer;
 }
 
 /**

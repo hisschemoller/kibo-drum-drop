@@ -5,6 +5,7 @@ import { setup as setupBluetooth } from './bluetooth/bluetooth.js';
 import { setup as setupControls } from './view/controls.js';
 import { setup as setupDialog } from './view/dialog.js';
 import { setup as setupSettings } from './view/settings.js';
+import { setup as setupWaveform } from './view/waveform.js';
 
 async function main() {
   let hasMIDIAccess = false;
@@ -18,6 +19,7 @@ async function main() {
     setupDialog();
     setupSettings();
     setupControls();
+    setupWaveform();
     persist();
     setupMidi();
     setupBluetooth();
