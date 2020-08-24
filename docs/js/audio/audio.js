@@ -33,7 +33,7 @@ function createVoices() {
  * @returns {Object} AudioBuffer.
  */
 export function getBuffer(index) {
-  return buffers[index].buffer;
+  return buffers[index] ? buffers[index].buffer : null;
 }
 
 /**

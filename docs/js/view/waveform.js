@@ -12,7 +12,8 @@ function handleStateChanges(e) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED:
-      showWaveform(state, action);
+    case actions.SELECT_SOUND:
+      showWaveform(state);
       break;
   }
 }
@@ -35,6 +36,11 @@ export function setup() {
 function showWaveform(state) {
   const { selectedIndex } = state;
   const buffer = getBuffer(selectedIndex);
+
+  if (!buffer) {
+    return;
+  }
+
   const channelData = buffer.getChannelData(0);
   const numBlocks = canvasEl.width;
   const blockSize = Math.floor(channelData.length / numBlocks);
@@ -70,6 +76,8 @@ function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
 
   // draw
   const amplitude = canvasEl.offsetHeight / 2;
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.save();
   ctx.translate(0, amplitude);
   ctx.lineWidth = 2;
   ctx.strokeStyle = '#aaa';
@@ -79,6 +87,7 @@ function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
     ctx.lineTo(index, value * amplitude);
   });
   ctx.stroke();
+  ctx.restore();
 }
 
 function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
@@ -114,6 +123,8 @@ function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
 
   // draw
   const amplitude = canvasEl.offsetHeight / 2;
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.save();
   ctx.translate(0, amplitude);
   ctx.lineWidth = 2;
   ctx.fillStyle = '#eee';
@@ -129,4 +140,5 @@ function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
   }
   ctx.fill();
   ctx.stroke();
+  ctx.restore();
 }

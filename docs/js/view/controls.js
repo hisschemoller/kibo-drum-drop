@@ -73,6 +73,7 @@ function addEventListeners() {
     shapeEl.addEventListener('dragover', handleDrag);
     shapeEl.addEventListener('dragleave', handleDragLeave);
     shapeEl.addEventListener('drop', handleDrop);
+    shapeEl.addEventListener('click', handlePadClick);
   });
 }
 
@@ -99,6 +100,12 @@ function handleDrop(e) {
     shapeEls.item(dragIndex).classList.remove('shape--dragover');
     dispatch(getActions().loadAudioFile(e.dataTransfer.files, dragIndex));
   }
+}
+
+function handlePadClick(e) {
+  e.preventDefault();
+  const index = [ ...e.target.parentElement.children ].indexOf(e.target);
+  dispatch(getActions().selectSound(index));
 }
 
 function handleStateChanges(e) {

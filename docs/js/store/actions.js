@@ -14,6 +14,7 @@ const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
+const SELECT_SOUND = 'SELECT_SOUND';
 const SET_MIDI_ACCESSIBLE = 'SET_MIDI_ACCESSIBLE';
 const SET_PROJECT = 'SET_PROJECT';
 const TOGGLE_SETTINGS = 'TOGGLE_SETTINGS';
@@ -106,6 +107,9 @@ export default {
 
   SELECT_MIDI_INPUT,
   selectMIDIInput: name => ({ type: SELECT_MIDI_INPUT, name, }),
+
+  SELECT_SOUND,
+  selectSound: index => ({ type: SELECT_SOUND, index, }),
 
   SET_MIDI_ACCESSIBLE,
   setMidiAccessible: value => ({ type: SET_MIDI_ACCESSIBLE, value }),

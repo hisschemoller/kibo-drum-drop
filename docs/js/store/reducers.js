@@ -65,6 +65,10 @@ export default function reduce(state = initialState, action, actions = {}) {
       return { ...state, midiSelectedInput: action.name, };
     }
 
+    case actions.SELECT_SOUND: {
+      return { ...state, selectedIndex: action.index, };
+    }
+
     case actions.SET_MIDI_ACCESSIBLE: {
       const { value } = action;
       return { ...state, isMIDIAccessible: value };

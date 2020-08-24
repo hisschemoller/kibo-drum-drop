@@ -78,6 +78,9 @@ body {
 .shape--play:after {
   background-color: #eee;
 }
+.shape--assigned {
+  cursor: pointer;
+}
 .shape--assigned.shape--play:after {
   background-color: #ccc;
 }
