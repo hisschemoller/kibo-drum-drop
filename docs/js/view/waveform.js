@@ -1,7 +1,7 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
 
-let rootEl, canvasEl, ctx, channelData;
+let rootEl, canvasEl, ctx;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -33,26 +33,25 @@ export function setup() {
  * @param {Object} state Application state.
  */
 function showWaveform(state) {
-  const { pads, selectedIndex } = state;
+  const { selectedIndex } = state;
   const buffer = getBuffer(selectedIndex);
-  channelData = buffer.getChannelData(0);
-
-  const samples = canvasEl.width;
-  const blockSize = Math.floor(channelData.length / samples);
+  const channelData = buffer.getChannelData(0);
+  const numBlocks = canvasEl.width;
+  const blockSize = Math.floor(channelData.length / numBlocks);
   const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
-  if (blockSize < 100) {
-    showWaveformLine(samples, blockSize, channelData, reducer);
+  if (blockSize < 1) {
+    showWaveformLine(numBlocks, blockSize, channelData, reducer);
   } else {
-
+    showWaveformFilled(numBlocks, blockSize, channelData, reducer);
   }
 }
 
-function showWaveformLine(samples, blockSize, channelData, reducer) {
-  let pointsMax = 0;
-  let pointsMin = 0;
-  const points = [];
-  for (let i = 0; i < samples; i++) {
+function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
+  let blocksMax = 0;
+  let blocksMin = 0;
+  const blocks = [];
+  for (let i = 0; i < numBlocks; i++) {
     const blockStart = blockSize * i;
     const blockValues = [];
     for (let j = 0; j < blockSize; j++) {
@@ -60,14 +59,14 @@ function showWaveformLine(samples, blockSize, channelData, reducer) {
       blockValues.push(value);
     }
     const blockAverage = blockValues.reduce(reducer, 0) / blockValues.length;
-    points.push(blockAverage);
-    pointsMax = Math.max(blockAverage, pointsMax);
-    pointsMin = Math.min(blockAverage, pointsMin);
+    blocks.push(blockAverage);
+    blocksMax = Math.max(blockAverage, blocksMax);
+    blocksMin = Math.min(blockAverage, blocksMin);
   }
-  const max = Math.max(pointsMax, -pointsMin);
+  const max = Math.max(blocksMax, -blocksMin);
 
   // normalize
-  const pointsNormalized = points.map(point => point / max);
+  const blocksNormalized = blocks.map(value => value / max);
 
   // draw
   const amplitude = canvasEl.offsetHeight / 2;
@@ -76,29 +75,58 @@ function showWaveformLine(samples, blockSize, channelData, reducer) {
   ctx.strokeStyle = '#aaa';
   ctx.beginPath();
   ctx.moveTo(0, 0);
-  pointsNormalized.forEach((point, index) => {
-    ctx.lineTo(index, point * amplitude);
+  blocksNormalized.forEach((value, index) => {
+    ctx.lineTo(index, value * amplitude);
   });
   ctx.stroke();
 }
 
-function showWaveformFilled() {
-  const neg = [];
-  const pos = [];
-  for (let i = 0; i < samples; i++) {
-    let blockStart = blockSize * i;
-    let negs = [];
-    let sumPos = [];
+function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
+  let blocksMax = 0;
+  let blocksMin = 0;
+  const blocksNeg = [];
+  const blocksPos = [];
+  for (let i = 0; i < numBlocks; i++) {
+    const blockStart = blockSize * i;
+    const blockNegValues = [0];
+    const blockPosValues = [0];
     for (let j = 0; j < blockSize; j++) {
       const value = channelData[blockStart + j];
-      if (value >= 0) {
-        sumPos.push(value);
-      } else {
-        negs.push(value);
+      if (value < 0) {;
+        blockNegValues.push(value)
+      }
+      if (value > 0) {;
+        blockPosValues.push(value)
       }
     }
-    const reducer = (accumulator, currentValue) => accumulator + currentValue;
-    neg.push(sumNeg.reduce(reducer, 0) / negs.length);
-    pos.push(sumPos.reduce(reducer, 0) / sumPos.length);
+    const blockNegAverage = blockNegValues.reduce(reducer, 0) / blockNegValues.length;
+    const blockPosAverage = blockPosValues.reduce(reducer, 0) / blockPosValues.length;
+    blocksNeg.push(blockNegAverage);
+    blocksPos.push(blockPosAverage);
+    blocksMax = Math.max(blockPosAverage, blocksMax);
+    blocksMin = Math.min(blockNegAverage, blocksMin);
   }
+  const max = Math.max(blocksMax, -blocksMin);
+
+  // normalize
+  const blocksNegNormalized = blocksNeg.map(value => value / max);
+  const blocksPosNormalized = blocksPos.map(value => value / max);
+
+  // draw
+  const amplitude = canvasEl.offsetHeight / 2;
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.fillStyle = '#eee';
+  ctx.strokeStyle = '#aaa';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.moveTo(0, 0);
+  blocksPosNormalized.forEach((value, index) => {
+    ctx.lineTo(index, value * amplitude);
+  });
+  for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
+    ctx.lineTo(i, blocksNegNormalized[i] * amplitude);
+  }
+  ctx.fill();
+  ctx.stroke();
 }
