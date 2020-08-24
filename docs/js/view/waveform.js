@@ -11,8 +11,8 @@ function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
 
-    case actions.LOAD_AUDIOFILE:
-      showWaveform(state);
+    case actions.AUDIOFILE_DECODED:
+      showWaveform(state, action);
       break;
   }
 }
@@ -36,33 +36,69 @@ function showWaveform(state) {
   const { pads, selectedIndex } = state;
   const buffer = getBuffer(selectedIndex);
   channelData = buffer.getChannelData(0);
-  console.log(buffer);
-  console.log(channelData);
-  console.log(channelData.length);
-  console.log(canvasEl);
 
   const samples = canvasEl.width;
   const blockSize = Math.floor(channelData.length / samples);
-  console.log(samples);
-  console.log(channelData.length, samples, blockSize);
+  const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+  if (blockSize < 100) {
+    showWaveformLine(samples, blockSize, channelData, reducer);
+  } else {
+
+  }
+}
+
+function showWaveformLine(samples, blockSize, channelData, reducer) {
+  let pointsMax = 0;
+  let pointsMin = 0;
+  const points = [];
+  for (let i = 0; i < samples; i++) {
+    const blockStart = blockSize * i;
+    const blockValues = [];
+    for (let j = 0; j < blockSize; j++) {
+      const value = channelData[blockStart + j];
+      blockValues.push(value);
+    }
+    const blockAverage = blockValues.reduce(reducer, 0) / blockValues.length;
+    points.push(blockAverage);
+    pointsMax = Math.max(blockAverage, pointsMax);
+    pointsMin = Math.min(blockAverage, pointsMin);
+  }
+  const max = Math.max(pointsMax, -pointsMin);
+
+  // normalize
+  const pointsNormalized = points.map(point => point / max);
+
+  // draw
+  const amplitude = canvasEl.offsetHeight / 2;
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#aaa';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  pointsNormalized.forEach((point, index) => {
+    ctx.lineTo(index, point * amplitude);
+  });
+  ctx.stroke();
+}
+
+function showWaveformFilled() {
   const neg = [];
   const pos = [];
   for (let i = 0; i < samples; i++) {
     let blockStart = blockSize * i;
-    let sumNeg = [];
+    let negs = [];
     let sumPos = [];
     for (let j = 0; j < blockSize; j++) {
-      const value =channelData[blockStart + j];
+      const value = channelData[blockStart + j];
       if (value >= 0) {
         sumPos.push(value);
       } else {
-        sumNeg.push(value);
+        negs.push(value);
       }
     }
     const reducer = (accumulator, currentValue) => accumulator + currentValue;
-    neg.push(sumNeg.reduce(reducer / sumNeg.length));
-    pos.push(sumPos.reduce(reducer / sumPos.length));
+    neg.push(sumNeg.reduce(reducer, 0) / negs.length);
+    pos.push(sumPos.reduce(reducer, 0) / sumPos.length);
   }
-  console.log(neg);
-  console.log(pos);
 }

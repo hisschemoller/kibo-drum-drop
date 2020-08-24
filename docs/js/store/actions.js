@@ -2,6 +2,7 @@ import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js
 import { NOTE_OFF } from '../midi/midi.js';
 import { showDialog } from '../view/dialog.js';
 
+const AUDIOFILE_DECODED = 'AUDIOFILE_DECODED';
 const BLUETOOTH_CONNECT = 'BLUETOOTH_CONNECT';
 const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
 const BLUETOOTH_ERROR = 'BLUETOOTH_ERROR';
@@ -20,6 +21,8 @@ const UPDATE_MIDI_PORTS = 'UPDATE_MIDI_PORTS';
 
 // actions
 export default {
+
+  AUDIOFILE_DECODED,
 
   BLUETOOTH_CONNECT,
   bluetoothConnect: () => ({ type: BLUETOOTH_CONNECT }),

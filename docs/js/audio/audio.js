@@ -7,7 +7,7 @@ const numVoices = 84;
 const pitchRange = new Array(127).fill(null);
 const voices = [];
 const noteDuration = 0.5;
-const buffers = [];
+const buffers = [null, null, null, null, null, null, null, null];
 let audioCtx;
 let voiceIndex = 0;
 
@@ -236,6 +236,7 @@ function updateAudioBuffers(state) {
 
 				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
 					buffers[index] = { name, buffer, };
+					dispatch({ type: getActions().AUDIOFILE_DECODED, index, });
 				});
 			}
 		}

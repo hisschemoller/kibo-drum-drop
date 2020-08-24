@@ -29,7 +29,10 @@ export default function reduce(state = initialState, action, actions = {}) {
       return { 
         ...state,
         pads: pads.reduce((accumulator, pad, index) => {
-          return [ ...accumulator, (index === padIndex) ? { buffer, name, } : pads[index] ];
+          if (index === padIndex) {
+            return [ ...accumulator, { buffer, name, } ];
+          }
+          return [ ...accumulator, pad ];
         }, []),
         selectedIndex: padIndex,
       };
