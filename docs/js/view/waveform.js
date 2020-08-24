@@ -1,6 +1,7 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
 
+const padding = 10;
 let rootEl, canvasEl, ctx;
 
 function addEventListeners() {
@@ -84,7 +85,7 @@ function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
   ctx.beginPath();
   ctx.moveTo(0, 0);
   blocksNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * amplitude);
+    ctx.lineTo(index, value * (amplitude - padding));
   });
   ctx.stroke();
   ctx.restore();
@@ -133,10 +134,10 @@ function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
   ctx.moveTo(0, 0);
   ctx.moveTo(0, 0);
   blocksPosNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * amplitude);
+    ctx.lineTo(index, value * (amplitude - padding));
   });
   for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
-    ctx.lineTo(i, blocksNegNormalized[i] * amplitude);
+    ctx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
   }
   ctx.fill();
   ctx.stroke();
