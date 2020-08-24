@@ -118,6 +118,7 @@ function handleStateChanges(e) {
     
 		case actions.LOAD_AUDIOFILE:
     case actions.SET_PROJECT:
+    case actions.SELECT_SOUND:
 			updateShapes(state);
 			break;
   }
@@ -143,11 +144,16 @@ export function setup() {
 }
 
 function updateShapes(state) {
-  const { note, pads } = state;
+  const { note, pads, selectedIndex } = state;
   const { index } = note;
   shapeEls.forEach((shapeEl, index) => {
     if (pads[index]) {
       shapeEl.classList.add('shape--assigned');
+      if (index === selectedIndex) {
+        shapeEl.classList.add('shape--selected');
+      } else {
+        shapeEl.classList.remove('shape--selected');
+      }
     } else {
       shapeEl.classList.remove('shape--assigned');
     }
