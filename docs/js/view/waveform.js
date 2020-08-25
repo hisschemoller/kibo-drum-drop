@@ -3,11 +3,63 @@ import { getBuffer } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
 
 const padding = 10;
-let rootEl, canvasEl, ctx, channelData;
+const addReducer = (accumulator, currentValue) => accumulator + currentValue;
+let rootEl,
+  canvasEl, 
+  ctx, 
+  channelData, 
+  numBlocks, 
+  blockSize, 
+  previousClientX, 
+  previousClientY, 
+  firstSample,
+  numSamples,
+  maxBlockSize;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
-  addWindowResizeCallback(onWindowResize);
+  canvasEl.addEventListener('mousedown', handleMouseDown);
+  addWindowResizeCallback(handleWindowResize);
+}
+
+function handleMouseDown(e) {
+  previousClientX = e.clientX;
+  previousClientY = e.clientY;
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+
+  // check if mouse is on the startOffset dragger
+}
+
+function handleMouseMove(e) {
+  if (e.clientY !== previousClientY) {
+    const distanceInPixels = previousClientY - e.clientY;
+    previousClientY = e.clientY;
+    let newBlockSize = blockSize * ( 1 + (distanceInPixels / 100) );
+
+    // at least a minimum zoom out amount to not get stuck zoomed in
+    if (distanceInPixels > 0 && Math.floor(newBlockSize) === blockSize) {
+      newBlockSize = blockSize + 1;
+    }
+
+    // minimum zoom: whole file visible
+    // maximum zoom: 1 sample per pixel
+    newBlockSize = Math.max(1, Math.min(newBlockSize, maxBlockSize));
+    const firstSample = 0;
+    const numSamples = newBlockSize * numBlocks;
+    dispatch(getActions().setWaveformZoom(firstSample, numSamples));
+  }
+
+
+  // const distanceInBlocks = distanceInPixels;
+  // const startOffset = distanceInBlocks * numBlocks;
+  // console.log('handleMouseMove', startOffset);
+  // dispatch(getActions().setAudioOffset(startOffset));
+}
+
+function handleMouseUp(e) {
+  document.removeEventListener('mousemove', handleMouseMove);
+  document.removeEventListener('mouseup', handleMouseUp);
 }
 
 function handleStateChanges(e) {
@@ -18,6 +70,10 @@ function handleStateChanges(e) {
     case actions.SELECT_SOUND:
       showWaveform(state);
       break;
+    
+    case actions.SET_WAVEFORM_ZOOM:
+      setZoom(state);
+      break;
   }
 }
 
@@ -25,7 +81,7 @@ function handleStateChanges(e) {
  * Window resize event handler.
  * @param {Boolean} isFirstRun True if function is called as part of app setup.
  */
-function onWindowResize() {
+function handleWindowResize() {
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
   drawWaveform();
@@ -47,30 +103,36 @@ export function setup() {
  * @param {Object} state Application state.
  */
 function showWaveform(state) {
-  const { selectedIndex } = state;
+  const { pads, selectedIndex } = state;
+  const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
   const buffer = getBuffer(selectedIndex);
 
   if (!buffer) {
     return;
   }
 
+  firstSample = firstWaveformSample;
+  numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
   drawWaveform();
 }
 
 function drawWaveform() {
-  const numBlocks = canvasEl.width;
-  const blockSize = Math.floor(channelData.length / numBlocks);
-  const reducer = (accumulator, currentValue) => accumulator + currentValue;
+  numBlocks = canvasEl.width;
+  maxBlockSize = Math.floor(channelData.length / numBlocks);
+  blockSize = Math.floor(numSamples / numBlocks);
 
   if (blockSize < 1) {
-    drawWaveformLine(numBlocks, blockSize, channelData, reducer);
+    drawWaveformLine();
   } else {
-    drawWaveformFilled(numBlocks, blockSize, channelData, reducer);
+    drawWaveformFilled();
   }
 }
 
-function drawWaveformLine(numBlocks, blockSize, channelData, reducer) {
+/**
+ * Draw waveform as a single line. Best for short samples.
+ */
+function drawWaveformLine() {
   let blocksMax = 0;
   let blocksMin = 0;
   const blocks = [];
@@ -81,7 +143,7 @@ function drawWaveformLine(numBlocks, blockSize, channelData, reducer) {
       const value = channelData[blockStart + j];
       blockValues.push(value);
     }
-    const blockAverage = blockValues.reduce(reducer, 0) / blockValues.length;
+    const blockAverage = blockValues.reduce(addReducer, 0) / blockValues.length;
     blocks.push(blockAverage);
     blocksMax = Math.max(blockAverage, blocksMax);
     blocksMin = Math.min(blockAverage, blocksMin);
@@ -107,7 +169,10 @@ function drawWaveformLine(numBlocks, blockSize, channelData, reducer) {
   ctx.restore();
 }
 
-function drawWaveformFilled(numBlocks, blockSize, channelData, reducer) {
+/**
+ * Draw waveform as a filled shape. Best for long samples.
+ */
+function drawWaveformFilled() {
   let blocksMax = 0;
   let blocksMin = 0;
   const blocksNeg = [];
@@ -125,8 +190,8 @@ function drawWaveformFilled(numBlocks, blockSize, channelData, reducer) {
         blockPosValues.push(value)
       }
     }
-    const blockNegAverage = blockNegValues.reduce(reducer, 0) / blockNegValues.length;
-    const blockPosAverage = blockPosValues.reduce(reducer, 0) / blockPosValues.length;
+    const blockNegAverage = blockNegValues.reduce(addReducer, 0) / blockNegValues.length;
+    const blockPosAverage = blockPosValues.reduce(addReducer, 0) / blockPosValues.length;
     blocksNeg.push(blockNegAverage);
     blocksPos.push(blockPosAverage);
     blocksMax = Math.max(blockPosAverage, blocksMax);
@@ -158,4 +223,12 @@ function drawWaveformFilled(numBlocks, blockSize, channelData, reducer) {
   ctx.fill();
   ctx.stroke();
   ctx.restore();
+}
+
+function setZoom(state) {
+  const { pads, selectedIndex } = state;
+  const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
+  firstSample = firstWaveformSample;
+  numSamples = numWaveformSamples;
+  drawWaveform();
 }

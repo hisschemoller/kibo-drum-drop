@@ -236,7 +236,7 @@ function updateAudioBuffers(state) {
 
 				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
 					buffers[index] = { name, buffer, };
-					dispatch({ type: getActions().AUDIOFILE_DECODED, index, });
+					dispatch({ type: getActions().AUDIOFILE_DECODED, index, numSamples: buffer.length, });
 				});
 			}
 		}

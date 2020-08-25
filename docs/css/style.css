@@ -18,8 +18,8 @@ body {
   font-family: sans-serif;
 }
 #app {
-  margin: 0 auto;
-  width: 80vw;
+  margin: 70px auto 0 auto;
+  width: 90vw;
 }
 #controls {
 	right: 0;
@@ -118,6 +118,9 @@ body {
 }
 
 @media (min-width: 770px) {
+  #app {
+    width: 80vw;
+  }
   .shape:before {
     background-size: 40%;
   }

@@ -15,7 +15,9 @@ const POPULATE = 'POPULATE';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
 const SELECT_SOUND = 'SELECT_SOUND';
+const SET_AUDIO_OFFSET = 'SET_AUDIO_OFFSET';
 const SET_MIDI_ACCESSIBLE = 'SET_MIDI_ACCESSIBLE';
+const SET_WAVEFORM_ZOOM = 'SET_WAVEFORM_ZOOM';
 const SET_PROJECT = 'SET_PROJECT';
 const TOGGLE_SETTINGS = 'TOGGLE_SETTINGS';
 const UPDATE_MIDI_PORTS = 'UPDATE_MIDI_PORTS';
@@ -111,11 +113,17 @@ export default {
   SELECT_SOUND,
   selectSound: index => ({ type: SELECT_SOUND, index, }),
 
+  SET_AUDIO_OFFSET,
+  setAudioOffset: value => ({ type: SET_AUDIO_OFFSET, value, }),
+
   SET_MIDI_ACCESSIBLE,
   setMidiAccessible: value => ({ type: SET_MIDI_ACCESSIBLE, value }),
   
   SET_PROJECT,
   setProject: state => ({ type: SET_PROJECT, state }),
+
+  SET_WAVEFORM_ZOOM,
+  setWaveformZoom: (firstWaveformSample, numWaveformSamples) => ({ type:SET_WAVEFORM_ZOOM, firstWaveformSample, numWaveformSamples }),
 
   TOGGLE_SETTINGS,
   toggleSettings: value => ({ type: TOGGLE_SETTINGS, value }),
