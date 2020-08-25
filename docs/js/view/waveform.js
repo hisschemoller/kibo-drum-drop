@@ -1,11 +1,13 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
+import addWindowResizeCallback from './windowresize.js';
 
 const padding = 10;
-let rootEl, canvasEl, ctx;
+let rootEl, canvasEl, ctx, channelData;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
+  addWindowResizeCallback(onWindowResize);
 }
 
 function handleStateChanges(e) {
@@ -17,6 +19,16 @@ function handleStateChanges(e) {
       showWaveform(state);
       break;
   }
+}
+
+/**
+ * Window resize event handler.
+ * @param {Boolean} isFirstRun True if function is called as part of app setup.
+ */
+function onWindowResize() {
+	canvasEl.height = rootEl.clientHeight;
+  canvasEl.width = rootEl.clientWidth;
+  drawWaveform();
 }
 
 export function setup() {
@@ -42,19 +54,23 @@ function showWaveform(state) {
     return;
   }
 
-  const channelData = buffer.getChannelData(0);
+  channelData = buffer.getChannelData(0);
+  drawWaveform();
+}
+
+function drawWaveform() {
   const numBlocks = canvasEl.width;
   const blockSize = Math.floor(channelData.length / numBlocks);
   const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
   if (blockSize < 1) {
-    showWaveformLine(numBlocks, blockSize, channelData, reducer);
+    drawWaveformLine(numBlocks, blockSize, channelData, reducer);
   } else {
-    showWaveformFilled(numBlocks, blockSize, channelData, reducer);
+    drawWaveformFilled(numBlocks, blockSize, channelData, reducer);
   }
 }
 
-function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
+function drawWaveformLine(numBlocks, blockSize, channelData, reducer) {
   let blocksMax = 0;
   let blocksMin = 0;
   const blocks = [];
@@ -91,7 +107,7 @@ function showWaveformLine(numBlocks, blockSize, channelData, reducer) {
   ctx.restore();
 }
 
-function showWaveformFilled(numBlocks, blockSize, channelData, reducer) {
+function drawWaveformFilled(numBlocks, blockSize, channelData, reducer) {
   let blocksMax = 0;
   let blocksMin = 0;
   const blocksNeg = [];
