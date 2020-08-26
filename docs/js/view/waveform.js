@@ -127,6 +127,7 @@ function showWaveform(state) {
   firstSample = firstWaveformSample;
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
+
   drawWaveform();
 }
 
@@ -153,11 +154,12 @@ function drawWaveform() {
  * Draw waveform as a single line. Best for short samples.
  */
 function drawWaveformLine() {
+  const firstSampleInt = Math.floor(firstSample);
   let blocksMax = 0;
   let blocksMin = 0;
   const blocks = [];
   for (let i = 0; i < numBlocks; i++) {
-    const blockStart = blockSize * i;
+    const blockStart = firstSampleInt + (blockSize * i);
     const blockValues = [];
     for (let j = 0; j < blockSize; j++) {
       const value = channelData[blockStart + j];
@@ -193,29 +195,25 @@ function drawWaveformLine() {
  * Draw waveform as a filled shape. Best for long samples.
  */
 function drawWaveformFilled() {
+  const firstSampleInt = Math.floor(firstSample);
   let blocksMax = 0;
   let blocksMin = 0;
   const blocksNeg = [];
   const blocksPos = [];
   for (let i = 0; i < numBlocks; i++) {
-    const blockStart = Math.floor(firstSample) + (blockSize * i);
-    const blockNegValues = [0];
-    const blockPosValues = [0];
+    const blockStart = firstSampleInt + (blockSize * i);
+    let blockNegMax = 0;
+    let blockPosMax = 0;
     for (let j = 0; j < blockSize; j++) {
       const value = channelData[blockStart + j];
-      if (value < 0) {;
-        blockNegValues.push(value);
-      }
-      if (value > 0) {;
-        blockPosValues.push(value);
-      }
+      blockNegMax = Math.min(blockNegMax, value);
+      blockPosMax = Math.max(blockPosMax, value);
     }
-    const blockNegAverage = blockNegValues.reduce(addReducer, 0) / blockNegValues.length;
-    const blockPosAverage = blockPosValues.reduce(addReducer, 0) / blockPosValues.length;
-    blocksNeg.push(blockNegAverage);
-    blocksPos.push(blockPosAverage);
-    blocksMax = Math.max(blockPosAverage, blocksMax);
-    blocksMin = Math.min(blockNegAverage, blocksMin);
+
+    blocksNeg.push(blockNegMax);
+    blocksPos.push(blockPosMax);
+    blocksMax = Math.max(blockPosMax, blocksMax);
+    blocksMin = Math.min(blockNegMax, blocksMin);
   }
   const max = Math.max(blocksMax, -blocksMin);
 
@@ -245,6 +243,10 @@ function drawWaveformFilled() {
   ctx.restore();
 }
 
+/**
+ * Redraw after changed zoom level.
+ * @param {Object} state App state.
+ */
 function setZoom(state) {
   const { pads, selectedIndex } = state;
   const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
