@@ -5,7 +5,8 @@ import addWindowResizeCallback from './windowresize.js';
 const padding = 10;
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 let rootEl,
-  canvasEl, 
+  canvasEl,
+  canvasRect,
   ctx, 
   channelData, 
   numBlocks, 
@@ -45,9 +46,16 @@ function handleMouseMove(e) {
     // minimum zoom: whole file visible
     // maximum zoom: 1 sample per pixel
     newBlockSize = Math.max(1, Math.min(newBlockSize, maxBlockSize));
-    const firstSample = 0;
-    const numSamples = newBlockSize * numBlocks;
-    dispatch(getActions().setWaveformZoom(firstSample, numSamples));
+    const newNumSamples = newBlockSize * numBlocks;
+
+    // get the new first sample in view
+    const mouseXNormalized = (e.clientX - canvasRect.left) / canvasRect.width;
+    const numSampleChange = newNumSamples - numSamples;
+    let newFirstSample = firstSample - (mouseXNormalized * numSampleChange);
+    const maxNewFirstSample = channelData.length - newNumSamples;
+    newFirstSample = Math.max(0, Math.min(newFirstSample, maxNewFirstSample));
+    
+    dispatch(getActions().setWaveformZoom(newFirstSample, newNumSamples));
   }
 
 
@@ -84,15 +92,20 @@ function handleStateChanges(e) {
 function handleWindowResize() {
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
+  canvasRect = canvasEl.getBoundingClientRect();
   drawWaveform();
 }
 
+/**
+ * General module setup.
+ */
 export function setup() {
   rootEl = document.querySelector('#waveform');
   canvasEl = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
   rootEl.appendChild(canvasEl);
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
+  canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
 
   addEventListeners();
@@ -117,7 +130,14 @@ function showWaveform(state) {
   drawWaveform();
 }
 
+/**
+ * Draw waveform, filled or line based on blockSize.
+ */
 function drawWaveform() {
+  if (!channelData) {
+    return;
+  }
+
   numBlocks = canvasEl.width;
   maxBlockSize = Math.floor(channelData.length / numBlocks);
   blockSize = Math.floor(numSamples / numBlocks);
@@ -178,16 +198,16 @@ function drawWaveformFilled() {
   const blocksNeg = [];
   const blocksPos = [];
   for (let i = 0; i < numBlocks; i++) {
-    const blockStart = blockSize * i;
+    const blockStart = Math.floor(firstSample) + (blockSize * i);
     const blockNegValues = [0];
     const blockPosValues = [0];
     for (let j = 0; j < blockSize; j++) {
       const value = channelData[blockStart + j];
       if (value < 0) {;
-        blockNegValues.push(value)
+        blockNegValues.push(value);
       }
       if (value > 0) {;
-        blockPosValues.push(value)
+        blockPosValues.push(value);
       }
     }
     const blockNegAverage = blockNegValues.reduce(addReducer, 0) / blockNegValues.length;
