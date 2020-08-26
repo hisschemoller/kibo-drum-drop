@@ -111,6 +111,20 @@ export default function reduce(state = initialState, action, actions = {}) {
       return { ...state, isMIDIAccessible: value };
     }
 
+    case actions.SET_WAVEFORM_POSITION: {
+      const { firstWaveformSample } = action;
+      const { pads, selectedIndex, } = state;
+      return { 
+        ...state,
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === selectedIndex) {
+            return [ ...accumulator, { ...pad, firstWaveformSample, } ];
+          }
+          return [ ...accumulator, pad ];
+        }, []),
+      };
+    }
+
     case actions.SET_WAVEFORM_ZOOM: {
       const { firstWaveformSample, numWaveformSamples } = action;
       const { pads, selectedIndex, } = state;

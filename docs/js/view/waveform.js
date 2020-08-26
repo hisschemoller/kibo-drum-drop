@@ -51,18 +51,20 @@ function handleMouseMove(e) {
     // get the new first sample in view
     const mouseXNormalized = (e.clientX - canvasRect.left) / canvasRect.width;
     const numSampleChange = newNumSamples - numSamples;
-    let newFirstSample = firstSample - (mouseXNormalized * numSampleChange);
     const maxNewFirstSample = channelData.length - newNumSamples;
+    let newFirstSample = firstSample - (mouseXNormalized * numSampleChange);
     newFirstSample = Math.max(0, Math.min(newFirstSample, maxNewFirstSample));
-    
     dispatch(getActions().setWaveformZoom(newFirstSample, newNumSamples));
   }
 
-
-  // const distanceInBlocks = distanceInPixels;
-  // const startOffset = distanceInBlocks * numBlocks;
-  // console.log('handleMouseMove', startOffset);
-  // dispatch(getActions().setAudioOffset(startOffset));
+  if (e.clientX !== previousClientX) {
+    const distanceInPixels = previousClientX - e.clientX;
+    const distanceInSamples = distanceInPixels * blockSize;
+    previousClientX = e.clientX;
+    const maxNewFirstSample = channelData.length - numSamples;
+    const newFirstSample = Math.max(0, Math.min(firstSample + distanceInSamples, maxNewFirstSample));
+    dispatch(getActions().setWaveformPosition(newFirstSample));
+  }
 }
 
 function handleMouseUp(e) {
@@ -79,8 +81,9 @@ function handleStateChanges(e) {
       showWaveform(state);
       break;
     
+    case actions.SET_WAVEFORM_POSITION:
     case actions.SET_WAVEFORM_ZOOM:
-      setZoom(state);
+      setPositionAndZoom(state);
       break;
   }
 }
@@ -247,7 +250,7 @@ function drawWaveformFilled() {
  * Redraw after changed zoom level.
  * @param {Object} state App state.
  */
-function setZoom(state) {
+function setPositionAndZoom(state) {
   const { pads, selectedIndex } = state;
   const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
   firstSample = firstWaveformSample;
