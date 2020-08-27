@@ -147,24 +147,20 @@ function handleMouseMove(e) {
   if (e.clientY !== previousClientY) {
     const distanceInPixels = previousClientY - e.clientY;
     previousClientY = e.clientY;
-    let newBlockSize = blockSize * ( 1 + (distanceInPixels / 100) );
 
-    // at least a minimum zoom out amount to not get stuck zoomed in
-    if (distanceInPixels > 0 && Math.floor(newBlockSize) === blockSize) {
-      newBlockSize = blockSize + 1;
-    }
+    // get new length of audio in view
+    const maxNewNumSamples = channelData.length;
+    const minNewNumSamples = numBlocks;
+    let newNumSamples = numSamples * (1 + (distanceInPixels / 100));
+    newNumSamples = Math.max(minNewNumSamples, Math.min(newNumSamples, maxNewNumSamples));
 
-    // minimum zoom: whole file visible
-    // maximum zoom: 1 sample per pixel
-    newBlockSize = Math.max(1, Math.min(newBlockSize, maxBlockSize));
-    const newNumSamples = newBlockSize * numBlocks;
-
-    // get the new first sample in view
-    const mouseXNormalized = (e.clientX - canvasRect.left) / canvasRect.width;
+    // get new position of audio in view
     const numSampleChange = newNumSamples - numSamples;
     const maxNewFirstSample = channelData.length - newNumSamples;
+    const mouseXNormalized = (e.clientX - canvasRect.left) / canvasRect.width;
     let newFirstSample = firstSample - (mouseXNormalized * numSampleChange);
     newFirstSample = Math.max(0, Math.min(newFirstSample, maxNewFirstSample));
+
     dispatch(getActions().setWaveformZoom(newFirstSample, newNumSamples));
   }
 
