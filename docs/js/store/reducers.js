@@ -93,20 +93,6 @@ export default function reduce(state = initialState, action, actions = {}) {
       return { ...state, selectedIndex: action.index, };
     }
 
-    case actions.SET_AUDIO_OFFSET: {
-      const { value } = action;
-      const { pads, selectedIndex } = state;
-      return { 
-        ...state, 
-        pads: pads.reduce((accumulator, pad, index) => {
-          if (index === selectedIndex) {
-            return [ ...accumulator, { ...pad, startOffset: value, } ];
-          }
-          return [ ...accumulator, pad ];
-        }, []), 
-      };
-    }
-
     case actions.SET_MIDI_ACCESSIBLE: {
       const { value } = action;
       return { ...state, isMIDIAccessible: value };
@@ -149,6 +135,20 @@ export default function reduce(state = initialState, action, actions = {}) {
         isMIDIAccessible, 
         midiInputs, 
         midiOutputs,
+      };
+    }
+
+    case actions.SET_SAMPLE_START_OFFSET: {
+      const { startOffset } = action;
+      const { pads, selectedIndex } = state;
+      return { 
+        ...state, 
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === selectedIndex) {
+            return [ ...accumulator, { ...pad, startOffset, } ];
+          }
+          return [ ...accumulator, pad ];
+        }, []), 
       };
     }
 

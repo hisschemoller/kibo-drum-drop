@@ -15,8 +15,8 @@ const POPULATE = 'POPULATE';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
 const SELECT_SOUND = 'SELECT_SOUND';
-const SET_AUDIO_OFFSET = 'SET_AUDIO_OFFSET';
 const SET_MIDI_ACCESSIBLE = 'SET_MIDI_ACCESSIBLE';
+const SET_SAMPLE_START_OFFSET = 'SET_SAMPLE_START_OFFSET';
 const SET_WAVEFORM_POSITION = 'SET_WAVEFORM_POSITION';
 const SET_WAVEFORM_ZOOM = 'SET_WAVEFORM_ZOOM';
 const SET_PROJECT = 'SET_PROJECT';
@@ -114,14 +114,14 @@ export default {
   SELECT_SOUND,
   selectSound: index => ({ type: SELECT_SOUND, index, }),
 
-  SET_AUDIO_OFFSET,
-  setAudioOffset: value => ({ type: SET_AUDIO_OFFSET, value, }),
-
   SET_MIDI_ACCESSIBLE,
   setMidiAccessible: value => ({ type: SET_MIDI_ACCESSIBLE, value }),
   
   SET_PROJECT,
   setProject: state => ({ type: SET_PROJECT, state }),
+
+  SET_SAMPLE_START_OFFSET,
+  setSampleStartOffset: startOffset =>  ({ type: SET_SAMPLE_START_OFFSET, startOffset }),
 
   SET_WAVEFORM_POSITION,
   setWaveformPosition: firstWaveformSample => ({ type: SET_WAVEFORM_POSITION, firstWaveformSample }),

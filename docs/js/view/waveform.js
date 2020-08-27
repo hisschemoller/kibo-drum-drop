@@ -4,6 +4,7 @@ import addWindowResizeCallback from './windowresize.js';
 
 const padding = 10;
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
+const startOffsetWidth = 40;
 let rootEl,
   canvasEl,
   canvasRect,
@@ -18,7 +19,9 @@ let rootEl,
   firstSample,
   numSamples,
   maxAmpl,
-  startOffsetCanvas;
+  startOffsetCanvas,
+  sampleStartOffset,
+  startOffsetX;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -30,7 +33,7 @@ function addEventListeners() {
  * 
  */
 function createStartOffsetImage() {
-  const canvas = new OffscreenCanvas(50, canvasRect.height);
+  const canvas = new OffscreenCanvas(startOffsetWidth, canvasRect.height);
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.lineWidth = 2;
@@ -38,9 +41,9 @@ function createStartOffsetImage() {
   ctx.beginPath();
   ctx.moveTo(1, 0);
   ctx.lineTo(1, canvasRect.height - 1);
-  ctx.lineTo(41, canvasRect.height- 1);
-  ctx.lineTo(41, canvasRect.height -41);
-  ctx.lineTo(1, canvasRect.height -41);
+  ctx.lineTo(startOffsetWidth - 1, canvasRect.height- 1);
+  ctx.lineTo(startOffsetWidth - 1, canvasRect.height - startOffsetWidth);
+  ctx.lineTo(1, canvasRect.height - startOffsetWidth);
   ctx.stroke();
   return canvas;
 }
@@ -55,6 +58,7 @@ function drawWaveform() {
 
   numBlocks = canvasEl.width;
   blockSize = Math.floor(numSamples / numBlocks);
+  startOffsetX = (sampleStartOffset - firstSample) / blockSize;
 
   if (blockSize < 1) {
     drawWaveformLine();
@@ -64,7 +68,11 @@ function drawWaveform() {
 
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.drawImage(offscreenCanvas, 0, 0);
-  ctx.drawImage(startOffsetCanvas, 0, 0);
+
+  // the sample start offset pointer
+  if (startOffsetX >= 0 && startOffsetX < canvasRect.width) {
+    ctx.drawImage(startOffsetCanvas, startOffsetX, 0);
+  }
 }
 
 /**
@@ -156,10 +164,18 @@ function drawWaveformLine() {
 function handleMouseDown(e) {
   previousClientX = e.clientX;
   previousClientY = e.clientY;
-  document.addEventListener('mousemove', handleMouseMove);
   document.addEventListener('mouseup', handleMouseUp);
 
   // check if mouse is on the startOffset dragger
+  const canvasX = e.clientX - canvasRect.left;
+  const canvasY = e.clientY - canvasRect.top;
+  if (canvasX >= startOffsetX && canvasX < startOffsetX + startOffsetWidth &&
+    canvasY >= canvasRect.height - startOffsetWidth && canvasY < canvasRect.height) {
+    document.addEventListener('mousemove', handleMouseMoveStartOffset);
+  } else {
+
+    document.addEventListener('mousemove', handleMouseMove);
+  }
 }
 
 function handleMouseMove(e) {
@@ -189,12 +205,25 @@ function handleMouseMove(e) {
     previousClientX = e.clientX;
     const maxNewFirstSample = channelData.length - numSamples;
     const newFirstSample = Math.max(0, Math.min(firstSample + distanceInSamples, maxNewFirstSample));
+
     dispatch(getActions().setWaveformPosition(newFirstSample));
+  }
+}
+
+function handleMouseMoveStartOffset(e) {
+  if (e.clientX !== previousClientX) {
+    const distanceInPixels = e.clientX - previousClientX;
+    previousClientX = e.clientX;
+    const distanceInSamples = distanceInPixels * blockSize;
+    const newSampleStartOffset = Math.max(0, Math.min(sampleStartOffset + distanceInSamples, channelData.length - 1));
+    
+    dispatch(getActions().setSampleStartOffset(newSampleStartOffset));
   }
 }
 
 function handleMouseUp(e) {
   document.removeEventListener('mousemove', handleMouseMove);
+  document.removeEventListener('mousemove', handleMouseMoveStartOffset);
   document.removeEventListener('mouseup', handleMouseUp);
 }
 
@@ -210,6 +239,10 @@ function handleStateChanges(e) {
     case actions.SET_WAVEFORM_POSITION:
     case actions.SET_WAVEFORM_ZOOM:
       setPositionAndZoom(state);
+      break;
+
+    case actions.SET_SAMPLE_START_OFFSET:
+      setStartOffset(state);
       break;
   }
 }
@@ -259,6 +292,14 @@ function setPositionAndZoom(state) {
   drawWaveform();
 }
 
+function setStartOffset(state) {
+  const { pads, selectedIndex } = state;
+  const { startOffset } = pads[selectedIndex];
+  sampleStartOffset = startOffset;
+
+  drawWaveform();
+}
+
 /**
  * 
  * @param {Object} state Application state.
@@ -270,7 +311,7 @@ function showWaveform(state) {
     return;
   }
 
-  const { firstWaveformSample, maxAmplitude, numWaveformSamples, } = pads[selectedIndex];
+  const { firstWaveformSample, maxAmplitude, numWaveformSamples, startOffset, } = pads[selectedIndex];
   const buffer = getBuffer(selectedIndex);
 
   if (!buffer) {
@@ -281,6 +322,7 @@ function showWaveform(state) {
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
   maxAmpl = maxAmplitude;
+  sampleStartOffset = startOffset;
 
   drawWaveform();
 }

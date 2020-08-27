@@ -108,11 +108,15 @@ function mtof(midi) {
  * @param {Object} state Application state.
  */
 function playNote(state) {
-	const { command, index, velocity } = state.note;
+	const { note, pads } = state;
+	const { command, index, velocity } = note;
 	if (audioCtx && command === NOTE_ON && velocity != 0) {
 		// startNote(0, pitch, velocity);
 		// stopNote(0.5, pitch, velocity);
-		startOneShot(0, index, velocity, noteDuration);
+		if (pads[index]) {
+			const { startOffset } = pads[index];
+			startOneShot(0, index, velocity, noteDuration, startOffset);
+		}
 	}
 }
 
@@ -123,7 +127,7 @@ function playNote(state) {
  * @param {Number} velocity 
  * @param {Number} duration 
  */
-function startOneShot(nowToStartInSecs, index, velocity, duration) {
+function startOneShot(nowToStartInSecs, index, velocity, duration, startOffset = 0) {
 	if (!buffers[index]) {
 		return;
 	}
@@ -144,7 +148,7 @@ function startOneShot(nowToStartInSecs, index, velocity, duration) {
 	voice.source = audioCtx.createBufferSource();
   voice.source.buffer = buffer;
 	voice.source.connect(voice.gain);
-	voice.source.start(startTime);
+	voice.source.start(startTime, startOffset / buffer.sampleRate);
 	voice.gain.gain.setValueAtTime(gainLevel, startTime);
 	voice.gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
