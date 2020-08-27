@@ -24,7 +24,7 @@ export default function reduce(state = initialState, action, actions = {}) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED: {
-      const { index: loadedIndex, numSamples, } = action;
+      const { index: loadedIndex, maxAmplitude, numSamples, } = action;
       const { pads, } = state;
       return { 
         ...state,
@@ -32,6 +32,7 @@ export default function reduce(state = initialState, action, actions = {}) {
           if (index === loadedIndex) {
             return [ ...accumulator, { 
               ...pad,
+              maxAmplitude,
               numWaveformSamples: pad.numWaveformSamples ? pad.numWaveformSamples : numSamples,
             } ];
           }

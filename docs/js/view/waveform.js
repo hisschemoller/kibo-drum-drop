@@ -15,7 +15,8 @@ let rootEl,
   previousClientY, 
   firstSample,
   numSamples,
-  maxBlockSize;
+  maxBlockSize,
+  maxAmpl;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -47,8 +48,6 @@ function drawWaveform() {
  */
 function drawWaveformFilled() {
   const firstSampleInt = Math.floor(firstSample);
-  let blocksMax = 0;
-  let blocksMin = 0;
   const blocksNeg = [];
   const blocksPos = [];
   for (let i = 0; i < numBlocks; i++) {
@@ -60,17 +59,13 @@ function drawWaveformFilled() {
       blockNegMax = Math.min(blockNegMax, value);
       blockPosMax = Math.max(blockPosMax, value);
     }
-
     blocksNeg.push(blockNegMax);
     blocksPos.push(blockPosMax);
-    blocksMax = Math.max(blockPosMax, blocksMax);
-    blocksMin = Math.min(blockNegMax, blocksMin);
   }
-  const max = Math.max(blocksMax, -blocksMin);
 
   // normalize
-  const blocksNegNormalized = blocksNeg.map(value => value / max);
-  const blocksPosNormalized = blocksPos.map(value => value / max);
+  const blocksNegNormalized = blocksNeg.map(value => value / maxAmpl);
+  const blocksPosNormalized = blocksPos.map(value => value / maxAmpl);
 
   // draw
   const amplitude = canvasEl.offsetHeight / 2;
@@ -244,7 +239,7 @@ function showWaveform(state) {
     return;
   }
 
-  const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
+  const { firstWaveformSample, maxAmplitude, numWaveformSamples, } = pads[selectedIndex];
   const buffer = getBuffer(selectedIndex);
 
   if (!buffer) {
@@ -254,6 +249,7 @@ function showWaveform(state) {
   firstSample = firstWaveformSample;
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
+  maxAmpl = maxAmplitude;
 
   drawWaveform();
 }
