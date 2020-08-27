@@ -17,13 +17,32 @@ let rootEl,
   previousClientY, 
   firstSample,
   numSamples,
-  maxBlockSize,
-  maxAmpl;
+  maxAmpl,
+  startOffsetCanvas;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
   canvasEl.addEventListener('mousedown', handleMouseDown);
   addWindowResizeCallback(handleWindowResize);
+}
+
+/**
+ * 
+ */
+function createStartOffsetImage() {
+  const canvas = new OffscreenCanvas(50, canvasRect.height);
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#f00';
+  ctx.beginPath();
+  ctx.moveTo(1, 0);
+  ctx.lineTo(1, canvasRect.height - 1);
+  ctx.lineTo(41, canvasRect.height- 1);
+  ctx.lineTo(41, canvasRect.height -41);
+  ctx.lineTo(1, canvasRect.height -41);
+  ctx.stroke();
+  return canvas;
 }
 
 /**
@@ -35,7 +54,6 @@ function drawWaveform() {
   }
 
   numBlocks = canvasEl.width;
-  maxBlockSize = Math.floor(channelData.length / numBlocks);
   blockSize = Math.floor(numSamples / numBlocks);
 
   if (blockSize < 1) {
@@ -46,6 +64,7 @@ function drawWaveform() {
 
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.drawImage(offscreenCanvas, 0, 0);
+  ctx.drawImage(startOffsetCanvas, 0, 0);
 }
 
 /**
@@ -128,7 +147,7 @@ function drawWaveformLine() {
   offscreenCtx.beginPath();
   offscreenCtx.moveTo(0, 0);
   blocksNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
+    offscreenCtx.lineTo(index, value * (amplitude - padding));
   });
   offscreenCtx.stroke();
   offscreenCtx.restore();
@@ -222,6 +241,8 @@ export function setup() {
 
   offscreenCanvas = new OffscreenCanvas(canvasRect.width, canvasRect.height);
   offscreenCtx = offscreenCanvas.getContext('2d');
+
+  startOffsetCanvas = createStartOffsetImage();
 
   addEventListeners();
 }
