@@ -7,7 +7,9 @@ const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 let rootEl,
   canvasEl,
   canvasRect,
-  ctx, 
+  ctx,
+  offscreenCanvas,
+  offscreenCtx,
   channelData, 
   numBlocks, 
   blockSize, 
@@ -41,6 +43,9 @@ function drawWaveform() {
   } else {
     drawWaveformFilled();
   }
+
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.drawImage(offscreenCanvas, 0, 0);
 }
 
 /**
@@ -68,24 +73,24 @@ function drawWaveformFilled() {
   const blocksPosNormalized = blocksPos.map(value => value / maxAmpl);
 
   // draw
-  const amplitude = canvasEl.offsetHeight / 2;
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
-  ctx.fillStyle = '#eee';
-  ctx.strokeStyle = '#aaa';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
+  const amplitude = canvasRect.height / 2;
+  offscreenCtx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  offscreenCtx.save();
+  offscreenCtx.translate(0, amplitude);
+  offscreenCtx.lineWidth = 2;
+  offscreenCtx.fillStyle = '#eee';
+  offscreenCtx.strokeStyle = '#aaa';
+  offscreenCtx.beginPath();
+  offscreenCtx.moveTo(0, 0);
   blocksPosNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
+    offscreenCtx.lineTo(index, value * (amplitude - padding));
   });
   for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
-    ctx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
+    offscreenCtx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
   }
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
+  offscreenCtx.fill();
+  offscreenCtx.stroke();
+  offscreenCtx.restore();
 }
 
 /**
@@ -114,19 +119,19 @@ function drawWaveformLine() {
   const blocksNormalized = blocks.map(value => value / max);
 
   // draw
-  const amplitude = canvasEl.offsetHeight / 2;
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#aaa';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
+  const amplitude = canvasRect.height / 2;
+  offscreenCtx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  offscreenCtx.save();
+  offscreenCtx.translate(0, amplitude);
+  offscreenCtx.lineWidth = 2;
+  offscreenCtx.strokeStyle = '#aaa';
+  offscreenCtx.beginPath();
+  offscreenCtx.moveTo(0, 0);
   blocksNormalized.forEach((value, index) => {
     ctx.lineTo(index, value * (amplitude - padding));
   });
-  ctx.stroke();
-  ctx.restore();
+  offscreenCtx.stroke();
+  offscreenCtx.restore();
 }
 
 function handleMouseDown(e) {
@@ -198,6 +203,8 @@ function handleWindowResize() {
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
+  offscreenCanvas.height = rootEl.clientHeight;
+  offscreenCanvas.width = rootEl.clientWidth;
   drawWaveform();
 }
 
@@ -212,6 +219,9 @@ export function setup() {
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
+
+  offscreenCanvas = new OffscreenCanvas(canvasRect.width, canvasRect.height);
+  offscreenCtx = offscreenCanvas.getContext('2d');
 
   addEventListeners();
 }
