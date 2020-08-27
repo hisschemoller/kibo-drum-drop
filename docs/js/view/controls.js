@@ -20,6 +20,7 @@ function addEventListeners() {
           // clear all data on key combination 'rst' (reset)
           resetKeyCombo.push(e.keyCode);
           if (resetKeyCombo.indexOf(82) > -1 && resetKeyCombo.indexOf(83) > -1 && resetKeyCombo.indexOf(84) > -1) {
+            console.log('Reset.');
             localStorage.clear();
             dispatch(getActions().newProject());
           }

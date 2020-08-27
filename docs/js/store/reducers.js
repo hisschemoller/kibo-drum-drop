@@ -32,7 +32,7 @@ export default function reduce(state = initialState, action, actions = {}) {
           if (index === loadedIndex) {
             return [ ...accumulator, { 
               ...pad,
-              numWaveformSamples: numSamples,
+              numWaveformSamples: pad.numWaveformSamples ? pad.numWaveformSamples : numSamples,
             } ];
           }
           return [ ...accumulator, pad ];

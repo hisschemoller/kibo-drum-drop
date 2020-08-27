@@ -23,6 +23,117 @@ function addEventListeners() {
   addWindowResizeCallback(handleWindowResize);
 }
 
+/**
+ * Draw waveform, filled or line based on blockSize.
+ */
+function drawWaveform() {
+  if (!channelData) {
+    return;
+  }
+
+  numBlocks = canvasEl.width;
+  maxBlockSize = Math.floor(channelData.length / numBlocks);
+  blockSize = Math.floor(numSamples / numBlocks);
+
+  if (blockSize < 1) {
+    drawWaveformLine();
+  } else {
+    drawWaveformFilled();
+  }
+}
+
+/**
+ * Draw waveform as a filled shape. Best for long samples.
+ */
+function drawWaveformFilled() {
+  const firstSampleInt = Math.floor(firstSample);
+  let blocksMax = 0;
+  let blocksMin = 0;
+  const blocksNeg = [];
+  const blocksPos = [];
+  for (let i = 0; i < numBlocks; i++) {
+    const blockStart = firstSampleInt + (blockSize * i);
+    let blockNegMax = 0;
+    let blockPosMax = 0;
+    for (let j = 0; j < blockSize; j++) {
+      const value = channelData[blockStart + j];
+      blockNegMax = Math.min(blockNegMax, value);
+      blockPosMax = Math.max(blockPosMax, value);
+    }
+
+    blocksNeg.push(blockNegMax);
+    blocksPos.push(blockPosMax);
+    blocksMax = Math.max(blockPosMax, blocksMax);
+    blocksMin = Math.min(blockNegMax, blocksMin);
+  }
+  const max = Math.max(blocksMax, -blocksMin);
+
+  // normalize
+  const blocksNegNormalized = blocksNeg.map(value => value / max);
+  const blocksPosNormalized = blocksPos.map(value => value / max);
+
+  // draw
+  const amplitude = canvasEl.offsetHeight / 2;
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.fillStyle = '#eee';
+  ctx.strokeStyle = '#aaa';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  blocksPosNormalized.forEach((value, index) => {
+    ctx.lineTo(index, value * (amplitude - padding));
+  });
+  for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
+    ctx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
+  }
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Draw waveform as a single line. Best for short samples.
+ */
+function drawWaveformLine() {
+  const firstSampleInt = Math.floor(firstSample);
+  let blocksMax = 0;
+  let blocksMin = 0;
+  const blocks = [];
+  for (let i = 0; i < numBlocks; i++) {
+    const blockStart = firstSampleInt + (blockSize * i);
+    const blockValues = [];
+    for (let j = 0; j < blockSize; j++) {
+      const value = channelData[blockStart + j];
+      blockValues.push(value);
+    }
+    const blockAverage = blockValues.reduce(addReducer, 0) / blockValues.length;
+    blocks.push(blockAverage);
+    blocksMax = Math.max(blockAverage, blocksMax);
+    blocksMin = Math.min(blockAverage, blocksMin);
+  }
+  const max = Math.max(blocksMax, -blocksMin);
+
+  // normalize
+  const blocksNormalized = blocks.map(value => value / max);
+
+  // draw
+  const amplitude = canvasEl.offsetHeight / 2;
+  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#aaa';
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  blocksNormalized.forEach((value, index) => {
+    ctx.lineTo(index, value * (amplitude - padding));
+  });
+  ctx.stroke();
+  ctx.restore();
+}
+
 function handleMouseDown(e) {
   previousClientX = e.clientX;
   previousClientY = e.clientY;
@@ -115,11 +226,28 @@ export function setup() {
 }
 
 /**
+ * Redraw after changed zoom level.
+ * @param {Object} state App state.
+ */
+function setPositionAndZoom(state) {
+  const { pads, selectedIndex } = state;
+  const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
+  firstSample = firstWaveformSample;
+  numSamples = numWaveformSamples;
+  drawWaveform();
+}
+
+/**
  * 
  * @param {Object} state Application state.
  */
 function showWaveform(state) {
   const { pads, selectedIndex } = state;
+
+  if (!pads[selectedIndex]) {
+    return;
+  }
+
   const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
   const buffer = getBuffer(selectedIndex);
 
@@ -131,129 +259,5 @@ function showWaveform(state) {
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
 
-  drawWaveform();
-}
-
-/**
- * Draw waveform, filled or line based on blockSize.
- */
-function drawWaveform() {
-  if (!channelData) {
-    return;
-  }
-
-  numBlocks = canvasEl.width;
-  maxBlockSize = Math.floor(channelData.length / numBlocks);
-  blockSize = Math.floor(numSamples / numBlocks);
-
-  if (blockSize < 1) {
-    drawWaveformLine();
-  } else {
-    drawWaveformFilled();
-  }
-}
-
-/**
- * Draw waveform as a single line. Best for short samples.
- */
-function drawWaveformLine() {
-  const firstSampleInt = Math.floor(firstSample);
-  let blocksMax = 0;
-  let blocksMin = 0;
-  const blocks = [];
-  for (let i = 0; i < numBlocks; i++) {
-    const blockStart = firstSampleInt + (blockSize * i);
-    const blockValues = [];
-    for (let j = 0; j < blockSize; j++) {
-      const value = channelData[blockStart + j];
-      blockValues.push(value);
-    }
-    const blockAverage = blockValues.reduce(addReducer, 0) / blockValues.length;
-    blocks.push(blockAverage);
-    blocksMax = Math.max(blockAverage, blocksMax);
-    blocksMin = Math.min(blockAverage, blocksMin);
-  }
-  const max = Math.max(blocksMax, -blocksMin);
-
-  // normalize
-  const blocksNormalized = blocks.map(value => value / max);
-
-  // draw
-  const amplitude = canvasEl.offsetHeight / 2;
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#aaa';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  blocksNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
-  });
-  ctx.stroke();
-  ctx.restore();
-}
-
-/**
- * Draw waveform as a filled shape. Best for long samples.
- */
-function drawWaveformFilled() {
-  const firstSampleInt = Math.floor(firstSample);
-  let blocksMax = 0;
-  let blocksMin = 0;
-  const blocksNeg = [];
-  const blocksPos = [];
-  for (let i = 0; i < numBlocks; i++) {
-    const blockStart = firstSampleInt + (blockSize * i);
-    let blockNegMax = 0;
-    let blockPosMax = 0;
-    for (let j = 0; j < blockSize; j++) {
-      const value = channelData[blockStart + j];
-      blockNegMax = Math.min(blockNegMax, value);
-      blockPosMax = Math.max(blockPosMax, value);
-    }
-
-    blocksNeg.push(blockNegMax);
-    blocksPos.push(blockPosMax);
-    blocksMax = Math.max(blockPosMax, blocksMax);
-    blocksMin = Math.min(blockNegMax, blocksMin);
-  }
-  const max = Math.max(blocksMax, -blocksMin);
-
-  // normalize
-  const blocksNegNormalized = blocksNeg.map(value => value / max);
-  const blocksPosNormalized = blocksPos.map(value => value / max);
-
-  // draw
-  const amplitude = canvasEl.offsetHeight / 2;
-  ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
-  ctx.fillStyle = '#eee';
-  ctx.strokeStyle = '#aaa';
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.moveTo(0, 0);
-  blocksPosNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
-  });
-  for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
-    ctx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
-  }
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-}
-
-/**
- * Redraw after changed zoom level.
- * @param {Object} state App state.
- */
-function setPositionAndZoom(state) {
-  const { pads, selectedIndex } = state;
-  const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
-  firstSample = firstWaveformSample;
-  numSamples = numWaveformSamples;
   drawWaveform();
 }
