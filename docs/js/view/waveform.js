@@ -57,10 +57,10 @@ function drawWaveform() {
   }
 
   numBlocks = canvasEl.width;
-  blockSize = Math.floor(numSamples / numBlocks);
+  blockSize = numSamples / numBlocks;
   startOffsetX = (sampleStartOffset - firstSample) / blockSize;
 
-  if (blockSize < 1) {
+  if (blockSize < 0.000000000001) {
     drawWaveformLine();
   } else {
     drawWaveformFilled();
@@ -79,18 +79,42 @@ function drawWaveform() {
  * Draw waveform as a filled shape. Best for long samples.
  */
 function drawWaveformFilled() {
-  const firstSampleInt = Math.floor(firstSample);
   const blocksNeg = [];
   const blocksPos = [];
+
   for (let i = 0; i < numBlocks; i++) {
-    const blockStart = firstSampleInt + (blockSize * i);
+    const blockFirstSample = firstSample + (blockSize * i);
+    const blockFirstSampleCeil = Math.ceil(blockFirstSample);
+    const blockLastSample = blockFirstSample + blockSize;
+    const blockLastSampleFloor = Math.floor(blockLastSample);
     let blockNegMax = 0;
     let blockPosMax = 0;
-    for (let j = 0; j < blockSize; j++) {
-      const value = channelData[blockStart + j];
+
+    // interpolate first sample
+    if (blockFirstSample < blockFirstSampleCeil) {
+      const ratio = (blockFirstSampleCeil - blockFirstSample) / 1;
+      const value = (channelData[blockFirstSampleCeil] * (1 - ratio)) + (channelData[blockFirstSampleCeil - 1] * ratio);
       blockNegMax = Math.min(blockNegMax, value);
       blockPosMax = Math.max(blockPosMax, value);
     }
+
+    // interpolate last sample
+    if (blockLastSample > blockLastSampleFloor) {
+      const ratio = (blockLastSample - blockLastSampleFloor) / 1;
+      const value = (channelData[blockLastSampleFloor] * (1 - ratio)) + (channelData[blockLastSampleFloor + 1] * ratio);
+      blockNegMax = Math.min(blockNegMax, value);
+      blockPosMax = Math.max(blockPosMax, value);
+    }
+
+    // iterate samples within block
+    if (blockFirstSampleCeil <= blockLastSampleFloor) {
+      for (let j = blockFirstSampleCeil; j <= blockLastSampleFloor; j++) {
+        const value = channelData[j];
+        blockNegMax = Math.min(blockNegMax, value);
+        blockPosMax = Math.max(blockPosMax, value);
+      }
+    }
+
     blocksNeg.push(blockNegMax);
     blocksPos.push(blockPosMax);
   }
@@ -161,6 +185,10 @@ function drawWaveformLine() {
   offscreenCtx.restore();
 }
 
+/**
+ * Mouse down.
+ * @param {Object} e Event
+ */
 function handleMouseDown(e) {
   previousClientX = e.clientX;
   previousClientY = e.clientY;
@@ -178,14 +206,20 @@ function handleMouseDown(e) {
   }
 }
 
+/**
+ * Mouse moved, while dragging waveform background.
+ * @param {Object} e Event
+ */
 function handleMouseMove(e) {
+
+  // vertical drag changes zoom level
   if (e.clientY !== previousClientY) {
     const distanceInPixels = previousClientY - e.clientY;
     previousClientY = e.clientY;
 
     // get new length of audio in view
     const maxNewNumSamples = channelData.length;
-    const minNewNumSamples = numBlocks;
+    const minNewNumSamples = numBlocks * 0.1;
     let newNumSamples = numSamples * (1 + (distanceInPixels / 100));
     newNumSamples = Math.max(minNewNumSamples, Math.min(newNumSamples, maxNewNumSamples));
 
@@ -199,6 +233,7 @@ function handleMouseMove(e) {
     dispatch(getActions().setWaveformZoom(newFirstSample, newNumSamples));
   }
 
+  // horizontal drag changes waveform position.
   if (e.clientX !== previousClientX) {
     const distanceInPixels = previousClientX - e.clientX;
     const distanceInSamples = distanceInPixels * blockSize;
@@ -210,6 +245,10 @@ function handleMouseMove(e) {
   }
 }
 
+/**
+ * Mouse moved, while dragging start offset pointer.
+ * @param {Object} e Event
+ */
 function handleMouseMoveStartOffset(e) {
   if (e.clientX !== previousClientX) {
     const distanceInPixels = e.clientX - previousClientX;
@@ -221,6 +260,10 @@ function handleMouseMoveStartOffset(e) {
   }
 }
 
+/**
+ * Mouse up.
+ * @param {Object} e Event
+ */
 function handleMouseUp(e) {
   document.removeEventListener('mousemove', handleMouseMove);
   document.removeEventListener('mousemove', handleMouseMoveStartOffset);
@@ -292,6 +335,10 @@ function setPositionAndZoom(state) {
   drawWaveform();
 }
 
+/**
+ * 
+ * @param {*} state 
+ */
 function setStartOffset(state) {
   const { pads, selectedIndex } = state;
   const { startOffset } = pads[selectedIndex];
