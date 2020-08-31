@@ -60,7 +60,8 @@ function drawWaveform() {
   blockSize = numSamples / numBlocks;
   startOffsetX = (sampleStartOffset - firstSample) / blockSize;
 
-  if (blockSize < 0.000000000001) {
+  // Number.EPSILON === disable line
+  if (blockSize < Number.EPSILON) {
     drawWaveformLine();
   } else {
     drawWaveformFilled();
@@ -148,17 +149,38 @@ function drawWaveformFilled() {
  * Draw waveform as a single line. Best for short samples.
  */
 function drawWaveformLine() {
-  const firstSampleInt = Math.floor(firstSample);
   let blocksMax = 0;
   let blocksMin = 0;
   const blocks = [];
   for (let i = 0; i < numBlocks; i++) {
-    const blockStart = firstSampleInt + (blockSize * i);
+    const blockFirstSample = firstSample + (blockSize * i);
+    const blockFirstSampleCeil = Math.ceil(blockFirstSample);
+    const blockLastSample = blockFirstSample + blockSize;
+    const blockLastSampleFloor = Math.floor(blockLastSample);
     const blockValues = [];
-    for (let j = 0; j < blockSize; j++) {
-      const value = channelData[blockStart + j];
+
+    // interpolate first sample
+    if (blockFirstSample < blockFirstSampleCeil) {
+      const ratio = (blockFirstSampleCeil - blockFirstSample) / 1;
+      const value = (channelData[blockFirstSampleCeil] * (1 - ratio)) + (channelData[blockFirstSampleCeil - 1] * ratio);
       blockValues.push(value);
     }
+
+    // interpolate last sample
+    if (blockLastSample > blockLastSampleFloor) {
+      const ratio = (blockLastSample - blockLastSampleFloor) / 1;
+      const value = (channelData[blockLastSampleFloor] * (1 - ratio)) + (channelData[blockLastSampleFloor + 1] * ratio);
+      blockValues.push(value);
+    }
+
+    // iterate samples within block
+    if (blockFirstSampleCeil <= blockLastSampleFloor) {
+      for (let j = blockFirstSampleCeil; j <= blockLastSampleFloor; j++) {
+        const value = channelData[j];
+        blockValues.push(value);
+      }
+    }
+
     const blockAverage = blockValues.reduce(addReducer, 0) / blockValues.length;
     blocks.push(blockAverage);
     blocksMax = Math.max(blockAverage, blocksMax);
