@@ -110,12 +110,10 @@ function mtof(midi) {
 function playNote(state) {
 	const { note, pads } = state;
 	const { command, index, velocity } = note;
-	if (audioCtx && command === NOTE_ON && velocity != 0) {
-		// startNote(0, pitch, velocity);
-		// stopNote(0.5, pitch, velocity);
+	if (audioCtx && command === NOTE_ON && velocity !== 0) {
 		if (pads[index]) {
 			const { startOffset } = pads[index];
-			startOneShot(0, index, velocity, noteDuration, startOffset);
+			startOneShot(0, index, velocity, startOffset);
 		}
 	}
 }
@@ -125,21 +123,19 @@ function playNote(state) {
  * @param {Number} nowToStartInSecs 
  * @param {Number} index Pad index. 
  * @param {Number} velocity 
- * @param {Number} duration 
+ * @param {Number} startOffset 
  */
-function startOneShot(nowToStartInSecs, index, velocity, duration, startOffset = 0) {
+function startOneShot(nowToStartInSecs, index, velocity, startOffset = 0) {
 	if (!buffers[index]) {
 		return;
 	}
 
 	const buffer = buffers[index].buffer;
-
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
 
-	if (voice.isPlaying) {
-		stopOneShot(voice);
-	}
+	const pitch = pitches[index];
+	stopOneShot(pitch);
 	
 	const gainLevel = velocity**2 / 127**2;
 	const startTime = audioCtx.currentTime + nowToStartInSecs;
@@ -150,28 +146,27 @@ function startOneShot(nowToStartInSecs, index, velocity, duration, startOffset =
 	voice.source.connect(voice.gain);
 	voice.source.start(startTime, startOffset / buffer.sampleRate);
 	voice.gain.gain.setValueAtTime(gainLevel, startTime);
-	voice.gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
   voice.source.onended = function(e) {
-    stopOneShot(voice);
+		if (pitchRange[pitch] && voice.isPlaying) {
+			stopOneShot(pitch);
+		}
   };
 
-	voice.timerId = setTimeout(stopOneShot, duration * 1000, voice);
+	pitchRange[pitch] = voice;
 }
 
 /**
  * Stop sound playback and free the voice for reuse.
  * @param {Object} voice
  */
-function stopOneShot(voice) {
-	if (voice.timerId) {
-		clearTimeout(voice.timerId);
+function stopOneShot(pitch) {
+	if (pitchRange[pitch]) {
+		pitchRange[pitch].isPlaying = false;
+		pitchRange[pitch].source.stop(audioCtx.currentTime);
+		pitchRange[pitch].source.disconnect();
+		pitchRange[pitch] = null;
 	}
-
-	voice.source.stop(audioCtx.currentTime);
-	voice.source.disconnect();
-	voice.isPlaying = false;
-	voice.timerId = null;
 }
 
 /**
@@ -182,39 +177,50 @@ export function setup() {
 }
 
 /**
- * Start note.
+ * Play a sound of until note off.
  * @param {Number} nowToStartInSecs 
- * @param {Number} pitch 
+ * @param {Number} index Pad index. 
  * @param {Number} velocity 
+ * @param {Number} duration 
  */
-function startNote(nowToStartInSecs, pitch, velocity) {
+function startNote(nowToStartInSecs, index, pitch, velocity, startOffset = 0) {
+	if (!buffers[index]) {
+		return;
+	}
+	
 	stopNote(0, pitch, velocity);
 
-	const startTime = audioCtx.currentTime + nowToStartInSecs;
+	const buffer = buffers[index].buffer;
+
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
+
 	
+	const gainLevel = velocity**2 / 127**2;
+	const startTime = audioCtx.currentTime + nowToStartInSecs;
 	voice.isPlaying = true;
-	voice.osc = audioCtx.createOscillator();
-	voice.osc.type = 'sine';
-	voice.osc.frequency.setValueAtTime(mtof(pitch), startTime);
-	voice.osc.connect(voice.gain);
-	voice.osc.start(startTime);
-	voice.gain.gain.setValueAtTime(velocity**2 / 127**2, startTime);
-	voice.gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.5);
+
+	voice.source = audioCtx.createBufferSource();
+  voice.source.buffer = buffer;
+	voice.source.connect(voice.gain);
+	voice.source.start(startTime, startOffset / buffer.sampleRate);
+	voice.gain.gain.setValueAtTime(gainLevel, startTime);
+
+  voice.source.onended = function(e) {
+    stopNote(0, pitch, velocity);
+  };
 
 	pitchRange[pitch] = voice;
 }
 
 /**
- * Stop note.
- * @param {Number} nowToStopInSecs 
- * @param {Number} pitch 
- * @param {Number} velocity 
+ * Stop sound playback and free the voice for reuse.
+ * @param {Object} voice
  */
 function stopNote(nowToStopInSecs, pitch, velocity) {
 	if (pitchRange[pitch]) {
-		pitchRange[pitch].osc.stop(audioCtx.currentTime + nowToStopInSecs);
+		pitchRange[pitch].source.stop(audioCtx.currentTime + nowToStopInSecs);
+		pitchRange[pitch].source.disconnect();
 		pitchRange[pitch].isPlaying = false;
 		pitchRange[pitch] = null;
 	}

@@ -3,6 +3,8 @@ import { getBuffer } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
 
 const padding = 10;
+const fillColor = '#eee';
+const strokeColor = '#999';
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 const startOffsetWidth = 40;
 let rootEl,
@@ -130,8 +132,8 @@ function drawWaveformFilled() {
   offscreenCtx.save();
   offscreenCtx.translate(0, amplitude);
   offscreenCtx.lineWidth = 2;
-  offscreenCtx.fillStyle = '#eee';
-  offscreenCtx.strokeStyle = '#aaa';
+  offscreenCtx.fillStyle = fillColor;
+  offscreenCtx.strokeStyle = strokeColor;
   offscreenCtx.beginPath();
   offscreenCtx.moveTo(0, 0);
   blocksPosNormalized.forEach((value, index) => {
@@ -197,7 +199,7 @@ function drawWaveformLine() {
   offscreenCtx.save();
   offscreenCtx.translate(0, amplitude);
   offscreenCtx.lineWidth = 2;
-  offscreenCtx.strokeStyle = '#aaa';
+  offscreenCtx.strokeStyle = strokeColor;
   offscreenCtx.beginPath();
   offscreenCtx.moveTo(0, 0);
   blocksNormalized.forEach((value, index) => {
@@ -292,6 +294,10 @@ function handleMouseUp(e) {
   document.removeEventListener('mouseup', handleMouseUp);
 }
 
+/**
+ * App state changed.
+ * @param {Object} e Custom event.
+ */
 function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
