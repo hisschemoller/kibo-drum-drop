@@ -21,33 +21,15 @@ let rootEl,
   firstSample,
   numSamples,
   maxAmpl,
-  startOffsetCanvas,
+  startOffsetCtx,
   sampleStartOffset,
-  startOffsetX;
+  startOffsetX,
+  isStartOffsetAtRightEdge;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
   canvasEl.addEventListener('mousedown', handleMouseDown);
   addWindowResizeCallback(handleWindowResize);
-}
-
-/**
- * 
- */
-function createStartOffsetImage() {
-  const canvas = new OffscreenCanvas(startOffsetWidth, canvasRect.height);
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#f00';
-  ctx.beginPath();
-  ctx.moveTo(1, 0);
-  ctx.lineTo(1, canvasRect.height - 1);
-  ctx.lineTo(startOffsetWidth - 1, canvasRect.height- 1);
-  ctx.lineTo(startOffsetWidth - 1, canvasRect.height - startOffsetWidth);
-  ctx.lineTo(1, canvasRect.height - startOffsetWidth);
-  ctx.stroke();
-  return canvas;
 }
 
 /**
@@ -74,7 +56,9 @@ function drawWaveform() {
 
   // the sample start offset pointer
   if (startOffsetX >= 0 && startOffsetX < canvasRect.width) {
-    ctx.drawImage(startOffsetCanvas, startOffsetX, 0);
+    updateStartOffsetImage(startOffsetCtx);
+    const x = isStartOffsetAtRightEdge ? startOffsetX - startOffsetWidth : startOffsetX;
+    ctx.drawImage(startOffsetCtx.canvas, x, 0);
   }
 }
 
@@ -216,17 +200,18 @@ function drawWaveformLine() {
 function handleMouseDown(e) {
   previousClientX = e.clientX;
   previousClientY = e.clientY;
-  document.addEventListener('mouseup', handleMouseUp);
 
   // check if mouse is on the startOffset dragger
   const canvasX = e.clientX - canvasRect.left;
   const canvasY = e.clientY - canvasRect.top;
-  if (canvasX >= startOffsetX && canvasX < startOffsetX + startOffsetWidth &&
+  const offsetX = isStartOffsetAtRightEdge ? startOffsetX - startOffsetWidth : startOffsetX;
+  if (canvasX >= offsetX && canvasX < offsetX + startOffsetWidth &&
     canvasY >= canvasRect.height - startOffsetWidth && canvasY < canvasRect.height) {
     document.addEventListener('mousemove', handleMouseMoveStartOffset);
+    document.addEventListener('mouseup', handleMouseUpStartOffset);
   } else {
-
     document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   }
 }
 
@@ -290,8 +275,24 @@ function handleMouseMoveStartOffset(e) {
  */
 function handleMouseUp(e) {
   document.removeEventListener('mousemove', handleMouseMove);
-  document.removeEventListener('mousemove', handleMouseMoveStartOffset);
   document.removeEventListener('mouseup', handleMouseUp);
+}
+
+/**
+ * Mouse up, after dragging start offset pointer.
+ * @param {Object} e Event
+ */
+function handleMouseUpStartOffset(e) {
+  document.removeEventListener('mousemove', handleMouseMoveStartOffset);
+  document.removeEventListener('mouseup', handleMouseUpStartOffset);
+
+  updateStartOffsetImage(startOffsetCtx);
+  
+  // const isVisible = (sampleStartOffset >= firstSample) && (sampleStartOffset < firstSample + numSamples);
+  // const positionNormalized = (sampleStartOffset - firstSample) / numSamples;
+  // const positionInPixels = positionNormalized * canvasRect.width;
+  // const isAtRightEdge = positionInPixels > canvasRect.width - startOffsetWidth && positionInPixels < canvasRect.width;
+  // console.log(isVisible, positionNormalized, positionInPixels, isAtRightEdge);
 }
 
 /**
@@ -346,7 +347,8 @@ export function setup() {
   offscreenCanvas = new OffscreenCanvas(canvasRect.width, canvasRect.height);
   offscreenCtx = offscreenCanvas.getContext('2d');
 
-  startOffsetCanvas = createStartOffsetImage();
+  const c = new OffscreenCanvas(startOffsetWidth, canvasRect.height);
+  startOffsetCtx = c.getContext('2d');
 
   addEventListeners();
 }
@@ -371,7 +373,6 @@ function setStartOffset(state) {
   const { pads, selectedIndex } = state;
   const { startOffset } = pads[selectedIndex];
   sampleStartOffset = startOffset;
-
   drawWaveform();
 }
 
@@ -398,6 +399,39 @@ function showWaveform(state) {
   channelData = buffer.getChannelData(0);
   maxAmpl = maxAmplitude;
   sampleStartOffset = startOffset;
-
   drawWaveform();
+}
+
+/**
+ * Draw the start offset pointer based on position on the canvas.
+ * @param {Object} ctx CanvasRenderingContext2D.
+ */
+function updateStartOffsetImage(ctx) {
+
+  // test if the pointer is at the right edge of the canvass
+  const positionNormalized = (sampleStartOffset - firstSample) / numSamples;
+  const positionInPixels = positionNormalized * canvasRect.width;
+  const isAtRightEdge = positionInPixels > canvasRect.width - startOffsetWidth && positionInPixels < canvasRect.width;
+
+  // redraw
+  if (isAtRightEdge !== isStartOffsetAtRightEdge) {
+    isStartOffsetAtRightEdge = isAtRightEdge;
+
+    const x = isAtRightEdge ? startOffsetWidth - 1 : 1;
+    const halfWidth = (startOffsetWidth * 0.5) - 1;
+    const circleY = canvasRect.height - halfWidth - 1;
+
+    ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, circleY);
+    if (isAtRightEdge) {
+      ctx.ellipse(x - halfWidth, circleY, halfWidth, halfWidth, 0, 0, 2 * Math.PI);
+    } else {
+      ctx.ellipse(x + halfWidth, circleY, halfWidth, halfWidth, Math.PI, 0, 2 * Math.PI);
+    }
+    ctx.stroke();
+  }
 }
