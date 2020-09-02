@@ -33,6 +33,7 @@ export default function reduce(state = initialState, action, actions = {}) {
             return [ ...accumulator, { 
               ...pad,
               maxAmplitude,
+              numSamples,
               numWaveformSamples: pad.numWaveformSamples ? pad.numWaveformSamples : numSamples,
             } ];
           }
@@ -50,7 +51,9 @@ export default function reduce(state = initialState, action, actions = {}) {
           if (index === padIndex) {
             return [ ...accumulator, { 
               buffer, 
-              name, 
+              maxAmplitude: 0,
+              name,
+              numSamples: 0,
               startOffset: 0,
               firstWaveformSample: 0,
               numWaveformSamples: 0,
@@ -82,6 +85,26 @@ export default function reduce(state = initialState, action, actions = {}) {
           index,
           velocity,
         },
+      };
+    }
+
+    case actions.RELOAD_AUDIOFILE_ON_SAME_PAD: {
+      const { padIndex, } = action;
+      const { pads, } = state;
+      return { 
+        ...state,
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === padIndex) {
+            return [ ...accumulator, { 
+              ...pad,
+              startOffset: 0,
+              firstWaveformSample: 0,
+              numWaveformSamples: pad.numSamples,
+            } ];
+          }
+          return [ ...accumulator, pad ];
+        }, []),
+        selectedIndex: padIndex,
       };
     }
 

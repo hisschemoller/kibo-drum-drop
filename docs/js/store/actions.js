@@ -12,6 +12,7 @@ const LOAD_AUDIOFILE = 'LOAD_AUDIOFILE';
 const NEW_PROJECT = 'NEW_PROJECT';
 const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
+const RELOAD_AUDIOFILE_ON_SAME_PAD = 'RELOAD_AUDIOFILE_ON_SAME_PAD';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
 const SELECT_SOUND = 'SELECT_SOUND';
@@ -46,11 +47,12 @@ export default {
   LOAD_AUDIOFILE,
   loadAudioFile: (files, index) => {
     return (dispatch, getState, getActions) => {
-      const { selectedIndex = 0 } = getState();
+      const { pads, selectedIndex = 0 } = getState();
       const padIndex = isNaN(index) ? selectedIndex : index;
       const file = files[0];
       const { name, size, type } = file;
-      console.log(padIndex, name, size, type);
+      const isSameFileOnSamePad = pads[padIndex] && pads[padIndex].name === name;
+
       if (type.indexOf('audio') === -1) {
         showDialog(
           'No audio file', 
@@ -61,6 +63,11 @@ export default {
           'File too big', 
           `Files up to 1 MB are allowed.`,
           'Ok');
+      } else if(isSameFileOnSamePad) {
+        dispatch({
+          type: RELOAD_AUDIOFILE_ON_SAME_PAD,
+          padIndex,
+        });
       } else {
         const fileReader = new FileReader();
 
@@ -107,6 +114,8 @@ export default {
 
   POPULATE,
   populate: () => ({ type: POPULATE }),
+
+  RELOAD_AUDIOFILE_ON_SAME_PAD,
 
   RESIZE,
   resize: (visibleWidth, visibleHeight) => ({ type: RESIZE, visibleWidth, visibleHeight }),

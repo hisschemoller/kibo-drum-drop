@@ -304,6 +304,7 @@ function handleStateChanges(e) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED:
+    case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
       showWaveform(state);
       break;
@@ -316,6 +317,10 @@ function handleStateChanges(e) {
     case actions.SET_SAMPLE_START_OFFSET:
       setStartOffset(state);
       break;
+    
+    // case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
+    //   setStartOffset(state);
+    //   break;
   }
 }
 
@@ -331,6 +336,21 @@ function handleWindowResize() {
   offscreenCanvas.width = rootEl.clientWidth;
   drawWaveform();
 }
+
+// function reset(state) {
+//   const { pads, selectedIndex } = state;
+
+//   if (!pads[selectedIndex]) {
+//     return;
+//   }
+
+//   const { firstWaveformSample, maxAmplitude, numWaveformSamples, startOffset, } = pads[selectedIndex];
+//   firstSample = firstWaveformSample;
+//   numSamples = numWaveformSamples;
+//   maxAmpl = maxAmplitude;
+//   sampleStartOffset = startOffset;
+//   drawWaveform();
+// }
 
 /**
  * General module setup.
