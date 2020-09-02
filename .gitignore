@@ -1,3 +1,5 @@
+node_modules
+
 *~
 .DS_Store
 .tmp
@@ -15,5 +17,3 @@
 *.3gp
 *.zip
 *.txt
-
-node_modules/

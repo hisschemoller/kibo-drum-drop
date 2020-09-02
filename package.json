@@ -1,13 +1,10 @@
 {
 		"name": "kibo-drum-drop",
-		"version": "0.1.0",
+		"version": "0.1.1",
 		"author": "Wouter Hisschemöller <email@hisschemoller.com>",
-		"description": "Kibo Drum Drop.",
+		"description": "MIDI sample player app.",
 		"private": true,
-		"dependencies": {
-				"planck-js": "^0.3.19",
-				"three": "^0.118.3"
-		},
+		"dependencies": {},
 		"devDependencies": {
 				"express": "^4.11.1"
 		}
