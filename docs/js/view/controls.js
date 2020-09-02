@@ -2,10 +2,13 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { pitches } from '../utils/utils.js';
 import { NOTE_ON, NOTE_OFF } from '../midi/midi.js';
 
-let rootEl, settingsBtn, shapeEls;
+let rootEl, settingsBtn, shapeEls, waveformEl;
 let resetKeyCombo = [];
 let dragIndex = -1;
 
+/**
+ * Add event listeners.
+ */
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
 
@@ -76,8 +79,17 @@ function addEventListeners() {
     shapeEl.addEventListener('drop', handleDrop);
     shapeEl.addEventListener('click', handlePadClick);
   });
+
+  waveformEl.addEventListener('dragenter', handleWaveformDrag);
+  waveformEl.addEventListener('dragover', handleWaveformDrag);
+  waveformEl.addEventListener('dragleave', handleWaveformDragLeave);
+  waveformEl.addEventListener('drop', handleWaveformDrop);
 }
 
+/**
+ * Drag enters or is over pad shapes.
+ * @param {Object} e event.
+ */
 function handleDrag(e) {
   e.preventDefault();
   if (dragIndex > -1) {
@@ -87,6 +99,10 @@ function handleDrag(e) {
   shapeEls.item(dragIndex).classList.add('shape--dragover');
 }
 
+/**
+ * Drag leaves pad shapes.
+ * @param {Object} e event.
+ */
 function handleDragLeave(e) {
   e.preventDefault();
   if (dragIndex > -1) {
@@ -95,6 +111,10 @@ function handleDragLeave(e) {
   dragIndex = -1;
 }
 
+/**
+ * Drop on pad shapes.
+ * @param {Object} e event.
+ */
 function handleDrop(e) {
   e.preventDefault();
   if (dragIndex > -1) {
@@ -103,12 +123,20 @@ function handleDrop(e) {
   }
 }
 
+/**
+ * Click on pad shapes.
+ * @param {Object} e event.
+ */
 function handlePadClick(e) {
   e.preventDefault();
   const index = [ ...e.target.parentElement.children ].indexOf(e.target);
   dispatch(getActions().selectSound(index));
 }
 
+/**
+ * Application state changed.
+ * @param {Object} e Custom event.
+ */
 function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
@@ -125,6 +153,38 @@ function handleStateChanges(e) {
   }
 }
 
+/**
+ * Drag enters or is over waveform element.
+ * @param {Object} e event.
+ */
+function handleWaveformDrag(e) {
+  e.preventDefault();
+  waveformEl.classList.add('waveform--dragover');
+}
+
+/**
+ * Drag leaves waveform element.
+ * @param {Object} e event.
+ */
+function handleWaveformDragLeave(e) {
+  e.preventDefault();
+  waveformEl.classList.remove('waveform--dragover');
+}
+
+/**
+ * Drop on waveform element.
+ * @param {Object} e event.
+ */
+function handleWaveformDrop(e) {
+  e.preventDefault();
+  waveformEl.classList.remove('waveform--dragover');
+  dispatch(getActions().loadAudioFile(e.dataTransfer.files));
+}
+
+/**
+ * Update shape elements appearance to indicate play state.
+ * @param {Object} state Application state.
+ */
 function playNote(state) {
   const { note } = state;
   const { command, index, velocity } = note;
@@ -137,13 +197,21 @@ function playNote(state) {
   }
 }
 
+/**
+ * General module setup.
+ */
 export function setup() {
   rootEl = document.querySelector('#controls');
   settingsBtn = rootEl.querySelector('#controls__settings');
   shapeEls = document.querySelectorAll('.shape');
+  waveformEl = document.querySelector('#waveform');
   addEventListeners();
 }
 
+/**
+ * Update shape elements appearance.
+ * @param {Object} state Application state.
+ */
 function updateShapes(state) {
   const { note, pads, selectedIndex } = state;
   const { index } = note;

@@ -44,6 +44,9 @@ body {
   height: 120px;
   margin: 10px;
 }
+#waveform.waveform--dragover {
+  border: 4px dotted #666;
+}
 #shapes {
   display: flex;
   flex-wrap: wrap-reverse;
@@ -74,9 +77,6 @@ body {
   right: 0;
   top: 0;
 }
-.shape--dragover:after {
-  border: 4px dotted #666;
-}
 .shape--assigned:after {
   background-color: #eee;
 }
@@ -85,6 +85,9 @@ body {
 }
 .shape--selected:after {
   border: 4px solid #bbb;
+}
+.shape--dragover:after {
+  border: 4px dotted #666;
 }
 .shape--assigned {
   cursor: pointer;

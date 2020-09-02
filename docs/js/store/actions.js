@@ -44,10 +44,13 @@ export default {
   deleteBodies: bodyIds => ({ type: DELETE_BODIES, bodyIds }),
   
   LOAD_AUDIOFILE,
-  loadAudioFile: (files, padIndex) => {
+  loadAudioFile: (files, index) => {
     return (dispatch, getState, getActions) => {
+      const { selectedIndex = 0 } = getState();
+      const padIndex = isNaN(index) ? selectedIndex : index;
       const file = files[0];
       const { name, size, type } = file;
+      console.log(padIndex, name, size, type);
       if (type.indexOf('audio') === -1) {
         showDialog(
           'No audio file', 
