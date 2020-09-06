@@ -6,7 +6,6 @@ const padding = 10;
 const fillColor = '#eee';
 const strokeColor = '#999';
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
-const startOffsetWidth = 40;
 let rootEl,
   canvasEl,
   canvasRect,
@@ -14,19 +13,12 @@ let rootEl,
   channelData, 
   numBlocks, 
   blockSize, 
-  previousClientX, 
-  previousClientY, 
   firstSample,
   numSamples,
-  maxAmpl,
-  startOffsetCtx,
-  sampleStartOffset,
-  startOffsetX,
-  isStartOffsetAtRightEdge;
+  maxAmpl;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
-  canvasEl.addEventListener('mousedown', handleMouseDown);
   addWindowResizeCallback(handleWindowResize);
 }
 
@@ -40,20 +32,12 @@ function drawWaveform() {
 
   numBlocks = canvasEl.width;
   blockSize = numSamples / numBlocks;
-  startOffsetX = (sampleStartOffset - firstSample) / blockSize;
 
-  // Number.EPSILON === disable line
+  // Number.EPSILON will disable single line waveform
   if (blockSize < Number.EPSILON) {
     drawWaveformLine();
   } else {
     drawWaveformFilled();
-  }
-
-  // the sample start offset pointer
-  if (startOffsetX >= 0 && startOffsetX < canvasRect.width) {
-    updateStartOffsetImage(startOffsetCtx);
-    const x = isStartOffsetAtRightEdge ? startOffsetX - startOffsetWidth : startOffsetX;
-    ctx.drawImage(startOffsetCtx.canvas, x, 0);
   }
 }
 
@@ -189,108 +173,6 @@ function drawWaveformLine() {
 }
 
 /**
- * Mouse down.
- * @param {Object} e Event
- */
-function handleMouseDown(e) {
-  previousClientX = e.clientX;
-  previousClientY = e.clientY;
-
-  // check if mouse is on the startOffset dragger
-  const canvasX = e.clientX - canvasRect.left;
-  const canvasY = e.clientY - canvasRect.top;
-  const offsetX = isStartOffsetAtRightEdge ? startOffsetX - startOffsetWidth : startOffsetX;
-  if (canvasX >= offsetX && canvasX < offsetX + startOffsetWidth &&
-    canvasY >= canvasRect.height - startOffsetWidth && canvasY < canvasRect.height) {
-    document.addEventListener('mousemove', handleMouseMoveStartOffset);
-    document.addEventListener('mouseup', handleMouseUpStartOffset);
-  } else {
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }
-}
-
-/**
- * Mouse moved, while dragging waveform background.
- * @param {Object} e Event
- */
-function handleMouseMove(e) {
-
-  // vertical drag changes zoom level
-  if (e.clientY !== previousClientY) {
-    const distanceInPixels = previousClientY - e.clientY;
-    previousClientY = e.clientY;
-
-    // get new length of audio in view
-    const maxNewNumSamples = channelData.length;
-    const minNewNumSamples = numBlocks * 0.1;
-    let newNumSamples = numSamples * (1 + (distanceInPixels / 100));
-    newNumSamples = Math.max(minNewNumSamples, Math.min(newNumSamples, maxNewNumSamples));
-
-    // get new position of audio in view
-    const numSampleChange = newNumSamples - numSamples;
-    const maxNewFirstSample = channelData.length - newNumSamples;
-    const mouseXNormalized = (e.clientX - canvasRect.left) / canvasRect.width;
-    let newFirstSample = firstSample - (mouseXNormalized * numSampleChange);
-    newFirstSample = Math.max(0, Math.min(newFirstSample, maxNewFirstSample));
-
-    dispatch(getActions().setWaveformZoom(newFirstSample, newNumSamples));
-  }
-
-  // horizontal drag changes waveform position.
-  if (e.clientX !== previousClientX) {
-    const distanceInPixels = previousClientX - e.clientX;
-    const distanceInSamples = distanceInPixels * blockSize;
-    previousClientX = e.clientX;
-    const maxNewFirstSample = channelData.length - numSamples;
-    const newFirstSample = Math.max(0, Math.min(firstSample + distanceInSamples, maxNewFirstSample));
-
-    dispatch(getActions().setWaveformPosition(newFirstSample));
-  }
-}
-
-/**
- * Mouse moved, while dragging start offset pointer.
- * @param {Object} e Event
- */
-function handleMouseMoveStartOffset(e) {
-  if (e.clientX !== previousClientX) {
-    const distanceInPixels = e.clientX - previousClientX;
-    previousClientX = e.clientX;
-    const distanceInSamples = distanceInPixels * blockSize;
-    const newSampleStartOffset = Math.max(0, Math.min(sampleStartOffset + distanceInSamples, channelData.length - 1));
-    
-    dispatch(getActions().setSampleStartOffset(newSampleStartOffset));
-  }
-}
-
-/**
- * Mouse up.
- * @param {Object} e Event
- */
-function handleMouseUp(e) {
-  document.removeEventListener('mousemove', handleMouseMove);
-  document.removeEventListener('mouseup', handleMouseUp);
-}
-
-/**
- * Mouse up, after dragging start offset pointer.
- * @param {Object} e Event
- */
-function handleMouseUpStartOffset(e) {
-  document.removeEventListener('mousemove', handleMouseMoveStartOffset);
-  document.removeEventListener('mouseup', handleMouseUpStartOffset);
-
-  updateStartOffsetImage(startOffsetCtx);
-  
-  // const isVisible = (sampleStartOffset >= firstSample) && (sampleStartOffset < firstSample + numSamples);
-  // const positionNormalized = (sampleStartOffset - firstSample) / numSamples;
-  // const positionInPixels = positionNormalized * canvasRect.width;
-  // const isAtRightEdge = positionInPixels > canvasRect.width - startOffsetWidth && positionInPixels < canvasRect.width;
-  // console.log(isVisible, positionNormalized, positionInPixels, isAtRightEdge);
-}
-
-/**
  * App state changed.
  * @param {Object} e Custom event.
  */
@@ -308,14 +190,6 @@ function handleStateChanges(e) {
     case actions.SET_WAVEFORM_ZOOM:
       setPositionAndZoom(state);
       break;
-
-    case actions.SET_SAMPLE_START_OFFSET:
-      setStartOffset(state);
-      break;
-    
-    // case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
-    //   setStartOffset(state);
-    //   break;
   }
 }
 
@@ -342,11 +216,6 @@ export function setup() {
   canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
 
-  const c = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-	c.height = canvasRect.height;
-  c.width = startOffsetWidth;
-  startOffsetCtx = c.getContext('2d');
-
   addEventListeners();
 }
 
@@ -364,17 +233,6 @@ function setPositionAndZoom(state) {
 
 /**
  * 
- * @param {*} state 
- */
-function setStartOffset(state) {
-  const { pads, selectedIndex } = state;
-  const { startOffset } = pads[selectedIndex];
-  sampleStartOffset = startOffset;
-  drawWaveform();
-}
-
-/**
- * 
  * @param {Object} state Application state.
  */
 function showWaveform(state) {
@@ -384,7 +242,7 @@ function showWaveform(state) {
     return;
   }
 
-  const { firstWaveformSample, maxAmplitude, numWaveformSamples, startOffset, } = pads[selectedIndex];
+  const { firstWaveformSample, maxAmplitude, numWaveformSamples, } = pads[selectedIndex];
   const buffer = getBuffer(selectedIndex);
 
   if (!buffer) {
@@ -395,40 +253,5 @@ function showWaveform(state) {
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
   maxAmpl = maxAmplitude;
-  sampleStartOffset = startOffset;
   drawWaveform();
-}
-
-/**
- * Draw the start offset pointer based on position on the canvas.
- * @param {Object} ctx CanvasRenderingContext2D.
- */
-function updateStartOffsetImage(ctx) {
-
-  // test if the pointer is at the right edge of the canvass
-  const positionNormalized = (sampleStartOffset - firstSample) / numSamples;
-  const positionInPixels = positionNormalized * canvasRect.width;
-  const isAtRightEdge = positionInPixels > canvasRect.width - startOffsetWidth && positionInPixels < canvasRect.width;
-
-  // redraw
-  if (isAtRightEdge !== isStartOffsetAtRightEdge) {
-    isStartOffsetAtRightEdge = isAtRightEdge;
-
-    const x = isAtRightEdge ? startOffsetWidth - 1 : 1;
-    const halfWidth = (startOffsetWidth * 0.5) - 1;
-    const circleY = canvasRect.height - halfWidth - 1;
-
-    ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#000';
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, circleY);
-    if (isAtRightEdge) {
-      ctx.ellipse(x - halfWidth, circleY, halfWidth, halfWidth, 0, 0, 2 * Math.PI);
-    } else {
-      ctx.ellipse(x + halfWidth, circleY, halfWidth, halfWidth, Math.PI, 0, 2 * Math.PI);
-    }
-    ctx.stroke();
-  }
 }
