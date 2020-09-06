@@ -11,8 +11,6 @@ let rootEl,
   canvasEl,
   canvasRect,
   ctx,
-  offscreenCanvas,
-  offscreenCtx,
   channelData, 
   numBlocks, 
   blockSize, 
@@ -50,9 +48,6 @@ function drawWaveform() {
   } else {
     drawWaveformFilled();
   }
-
-  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.drawImage(offscreenCanvas, 0, 0);
 
   // the sample start offset pointer
   if (startOffsetX >= 0 && startOffsetX < canvasRect.width) {
@@ -112,23 +107,23 @@ function drawWaveformFilled() {
 
   // draw
   const amplitude = canvasRect.height / 2;
-  offscreenCtx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  offscreenCtx.save();
-  offscreenCtx.translate(0, amplitude);
-  offscreenCtx.lineWidth = 2;
-  offscreenCtx.fillStyle = fillColor;
-  offscreenCtx.strokeStyle = strokeColor;
-  offscreenCtx.beginPath();
-  offscreenCtx.moveTo(0, 0);
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.fillStyle = fillColor;
+  ctx.strokeStyle = strokeColor;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
   blocksPosNormalized.forEach((value, index) => {
-    offscreenCtx.lineTo(index, value * (amplitude - padding));
+    ctx.lineTo(index, value * (amplitude - padding));
   });
   for (let i = blocksNegNormalized.length - 1; i >= 0; i--) {
-    offscreenCtx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
+    ctx.lineTo(i, blocksNegNormalized[i] * (amplitude - padding));
   }
-  offscreenCtx.fill();
-  offscreenCtx.stroke();
-  offscreenCtx.restore();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
 }
 
 /**
@@ -179,18 +174,18 @@ function drawWaveformLine() {
 
   // draw
   const amplitude = canvasRect.height / 2;
-  offscreenCtx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  offscreenCtx.save();
-  offscreenCtx.translate(0, amplitude);
-  offscreenCtx.lineWidth = 2;
-  offscreenCtx.strokeStyle = strokeColor;
-  offscreenCtx.beginPath();
-  offscreenCtx.moveTo(0, 0);
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = strokeColor;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
   blocksNormalized.forEach((value, index) => {
-    offscreenCtx.lineTo(index, value * (amplitude - padding));
+    ctx.lineTo(index, value * (amplitude - padding));
   });
-  offscreenCtx.stroke();
-  offscreenCtx.restore();
+  ctx.stroke();
+  ctx.restore();
 }
 
 /**
@@ -332,25 +327,8 @@ function handleWindowResize() {
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
-  offscreenCanvas.height = rootEl.clientHeight;
-  offscreenCanvas.width = rootEl.clientWidth;
   drawWaveform();
 }
-
-// function reset(state) {
-//   const { pads, selectedIndex } = state;
-
-//   if (!pads[selectedIndex]) {
-//     return;
-//   }
-
-//   const { firstWaveformSample, maxAmplitude, numWaveformSamples, startOffset, } = pads[selectedIndex];
-//   firstSample = firstWaveformSample;
-//   numSamples = numWaveformSamples;
-//   maxAmpl = maxAmplitude;
-//   sampleStartOffset = startOffset;
-//   drawWaveform();
-// }
 
 /**
  * General module setup.
@@ -364,10 +342,9 @@ export function setup() {
   canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
 
-  offscreenCanvas = new OffscreenCanvas(canvasRect.width, canvasRect.height);
-  offscreenCtx = offscreenCanvas.getContext('2d');
-
-  const c = new OffscreenCanvas(startOffsetWidth, canvasRect.height);
+  const c = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+	c.height = canvasRect.height;
+  c.width = startOffsetWidth;
   startOffsetCtx = c.getContext('2d');
 
   addEventListeners();
