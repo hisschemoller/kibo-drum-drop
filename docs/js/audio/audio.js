@@ -10,6 +10,7 @@ const noteDuration = 0.5;
 const buffers = [null, null, null, null, null, null, null, null];
 let audioCtx;
 let voiceIndex = 0;
+let stream;
 
 /**
  * Create the bank of reusable voice objects.
@@ -72,6 +73,10 @@ function handleStateChanges(e) {
 			playNote(state);
 			break;
 
+		case actions.TOGGLE_RECORD_ARM:
+			initialiseRecordMode(state);
+			break;
+
 		case actions.TOGGLE_SETTINGS:
 			initialiseAudio(state);
 			break;
@@ -89,6 +94,33 @@ function initialiseAudio(state) {
 		audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 		createVoices();
 		updateAudioBuffers(state);
+	}
+}
+
+/**
+ * 
+ * @param {Object} state Application state.
+ */
+async function initialiseRecordMode(state) {
+	const { isRecordArmed } = state;
+	if (isRecordArmed) {
+		try {
+			stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+			// const source = audioCtx.createMediaStreamSource(stream);
+			// const processor = audioCtx.createScriptProcessor(1024, 1, 1);
+			// source.connect(processor);
+			// processor.onaudioprocess = e => {
+			// 	console.log(e.inputBuffer);
+			// };
+		} catch(error) {
+			dispatch(getActions().toggleRecordArm());
+		}
+	} else {
+		if (stream) {
+
+			// close stream
+			stream.getTracks().forEach(track => track.stop());
+		}
 	}
 }
 

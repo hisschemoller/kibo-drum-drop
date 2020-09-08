@@ -1,6 +1,7 @@
 
 const initialState = {
   isMIDIAccessible: false,
+  isRecordArmed: false,
   isSettingsVisible: false,
   midiInputs: [],
   midiOutputs: [],
@@ -156,6 +157,7 @@ export default function reduce(state = initialState, action, actions = {}) {
         ...state, 
         ...action.state,
         isMIDIAccessible, 
+        isRecordArmed: false,
         midiInputs, 
         midiOutputs,
       };
@@ -173,6 +175,10 @@ export default function reduce(state = initialState, action, actions = {}) {
           return [ ...accumulator, pad ];
         }, []), 
       };
+    }
+
+    case actions.TOGGLE_RECORD_ARM: {
+      return { ...state, isRecordArmed: !state.isRecordArmed, };
     }
 
     case actions.TOGGLE_SETTINGS: {

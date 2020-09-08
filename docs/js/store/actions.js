@@ -21,6 +21,7 @@ const SET_SAMPLE_START_OFFSET = 'SET_SAMPLE_START_OFFSET';
 const SET_WAVEFORM_POSITION = 'SET_WAVEFORM_POSITION';
 const SET_WAVEFORM_ZOOM = 'SET_WAVEFORM_ZOOM';
 const SET_PROJECT = 'SET_PROJECT';
+const TOGGLE_RECORD_ARM = 'TOGGLE_RECORD_ARM';
 const TOGGLE_SETTINGS = 'TOGGLE_SETTINGS';
 const UPDATE_MIDI_PORTS = 'UPDATE_MIDI_PORTS';
 
@@ -140,6 +141,9 @@ export default {
 
   SET_WAVEFORM_ZOOM,
   setWaveformZoom: (firstWaveformSample, numWaveformSamples) => ({ type: SET_WAVEFORM_ZOOM, firstWaveformSample, numWaveformSamples }),
+  
+  TOGGLE_RECORD_ARM,
+  toggleRecordArm: () => ({ type: TOGGLE_RECORD_ARM }),
 
   TOGGLE_SETTINGS,
   toggleSettings: value => ({ type: TOGGLE_SETTINGS, value }),
