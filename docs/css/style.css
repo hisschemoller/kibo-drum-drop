@@ -82,7 +82,7 @@ body {
 }
 #app {
   margin: 70px auto 0 auto;
-  width: 90vw;
+  width: 96vw;
 }
 #settings-btn {
   background: transparent url('../img/cog.svg') no-repeat;
@@ -156,7 +156,7 @@ body {
 }
 .shape {
   display: flex;
-  height: 20vw;
+  height: 24vw;
   position: relative;
   width: 25%;
 }
@@ -170,7 +170,7 @@ body {
 }
 .shape:before {
   background: transparent no-repeat center center;
-  background-size: 60%;
+  background-size: 40%;
   bottom: 0;
   content: '';
   display: block;
@@ -226,8 +226,11 @@ body {
   #app {
     width: 80vw;
   }
+  .shape {
+    height: 20vw;
+  }
   .shape:before {
-    background-size: 40%;
+    background-size: 45%;
   }
 }
 
