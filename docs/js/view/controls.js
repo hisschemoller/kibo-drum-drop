@@ -202,7 +202,7 @@ function playNote(state) {
  */
 export function setup() {
   rootEl = document.querySelector('#controls');
-  settingsBtn = rootEl.querySelector('#controls__settings');
+  settingsBtn = document.querySelector('#settings-btn');
   shapeEls = document.querySelectorAll('.shape');
   waveformEl = document.querySelector('#waveform');
   addEventListeners();

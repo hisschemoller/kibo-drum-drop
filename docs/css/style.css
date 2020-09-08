@@ -3,10 +3,73 @@
 
 :root {
   --bg-color: #fff;
-  --btn-active-bg-color: #aaa;
-  --btn-active-color: #333;
   --btn-bg-color: #ccc;
+  --btn-active-bg-color: #aaa;
   --btn-color: #999;
+  --btn-active-color: #333;
+
+  --color-lightest: #fff;
+  --color-lighter: #eee;
+  --color-light: #ccc;
+  --color-midlight: #aaa;
+  --color-mid: #999;
+  --color-middark: #666;
+  --color-dark: #333;
+  --color-darker: #111;
+  --color-darkest: #000;
+}
+
+/************************
+ * Fonts and icons
+ ************************/
+
+@font-face {
+  font-family: 'icomoon';
+  src:  url('../fonts/icomoon/fonts/icomoon.eot?8ue2bf');
+  src:  url('../fonts/icomoon/fonts/icomoon.eot?8ue2bf#iefix') format('embedded-opentype'),
+    url('../fonts/icomoon/fonts/icomoon.ttf?8ue2bf') format('truetype'),
+    url('../fonts/icomoon/fonts/icomoon.woff?8ue2bf') format('woff'),
+    url('../fonts/icomoon/fonts/icomoon.svg?8ue2bf#icomoon') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+[class^="icon-"],
+[class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'icomoon' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.icon-note:before {
+  content: "\e80a";
+}
+.icon-open:before {
+  content: "\f115";
+}
+.icon-play:before {
+  content: "\e802";
+}
+.icon-pause:before {
+  content: "\e803";
+}
+.icon-save:before {
+  content: "\e801";
+}
+.icon-stop:before {
+  content: "\e804";
+}
+.icon-mic:before {
+  content: "\e902";
+}
+.icon-micmute:before {
+  content: "\e901";
 }
 
 *, *:before, *:after {
@@ -21,12 +84,7 @@ body {
   margin: 70px auto 0 auto;
   width: 90vw;
 }
-#controls {
-	right: 0;
-	position: absolute;
-	top: 0;
-}
-#controls__settings {
+#settings-btn {
   background: transparent url('../img/cog.svg') no-repeat;
   background-size: contain;
   border: none;
@@ -39,13 +97,58 @@ body {
   width: 20px;
 }
 #waveform {
-  border: 4px solid #eeeeee;
+  border: 4px solid var(--color-lighter);
   border-radius: 10px;
   height: 120px;
   margin: 10px;
 }
 #waveform.waveform--dragover {
-  border: 4px dotted #666;
+  border: 4px dotted var(--color-dark);
+}
+#controls {
+  align-items: stretch;
+  display: flex;
+  margin: 10px;
+}
+#controls__record-arm {
+  flex-grow: 0;
+}
+#controls__record-meter {
+  border: 4px solid var(--color-lighter);
+  border-radius: 10px;
+  flex-grow: 1;
+  height: 80px;
+  margin-left: 10px;
+}
+.btn {
+  align-items: center;
+  background-color: var(--color-lightest);
+  border: 4px solid var(--color-lighter);
+  border-radius: 40px;
+  color: var(--color-mid);
+  cursor: pointer;
+  display: flex;
+  font-size: 27px;
+  height: 80px;
+  justify-content: space-around;
+  outline: none;
+  text-align: center;
+  width: 80px;
+}
+.toggle__check {
+  position: absolute;
+  margin-left: -9999px;
+  visibility: hidden;
+}
+.toggle__check + .toggle__label > span:before {
+  content: attr(data-off);
+}
+.toggle__check:checked + .toggle__label > span:before {
+  content: attr(data-on);
+}
+.toggle__check:checked + .toggle__label {
+  background-color: var(--color-light);
+  color: var(--color-dark);
 }
 #shapes {
   display: flex;
@@ -58,7 +161,7 @@ body {
   width: 25%;
 }
 .shape:after {
-  border: 4px solid #eeeeee;
+  border: 4px solid var(--color-lighter);
   border-radius: 10px;
   content: '';
   display: block;
@@ -71,29 +174,28 @@ body {
   bottom: 0;
   content: '';
   display: block;
-  /* height: 100%; */
   left: 0;
   position: absolute;
   right: 0;
   top: 0;
 }
 .shape--assigned:after {
-  background-color: #eee;
+  background-color: var(--color-lighter);
 }
 .shape--play:after {
-  background-color: #eee;
+  background-color: var(--color-lighter);
 }
 .shape--selected:after {
-  border: 4px solid #bbb;
+  border: 4px solid var(--color-midlight);
 }
 .shape--dragover:after {
-  border: 4px dotted #666;
+  border: 4px dotted var(--color-middark);
 }
 .shape--assigned {
   cursor: pointer;
 }
 .shape--assigned.shape--play:after {
-  background-color: #ccc;
+  background-color: var(--color-light);
 }
 .shape:nth-of-type(1):before {
   background-image: url('../img/shape0.svg');

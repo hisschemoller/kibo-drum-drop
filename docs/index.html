@@ -9,11 +9,15 @@
 </head>
 <body>
   <div id="app">
-    <div id="canvas-container"></div>
-    <div id="controls">
-      <button type="button" id="controls__settings"></button>
-    </div>
+    <button type="button" id="settings-btn"></button>
     <div id="waveform"></div>
+    <div id="controls">
+      <input type="checkbox" id="controls__record-arm" class="toggle__check" />
+      <label for="controls__record-arm" class="toggle__label btn" title="Record arm">
+        <span class="icon-new" data-on="&#xe902;" data-off="&#xe901;"></span>
+      </label>
+      <div id="controls__record-meter"></div>
+    </div>
     <div id="shapes">
       <div class="shape"></div>
       <div class="shape"></div>

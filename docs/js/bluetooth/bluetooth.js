@@ -29,6 +29,10 @@ async function connect() {
 			console.log('> bluetooth device', device);
 			console.log('> bluetooth device.gatt', device.gatt);
 			server = await device.gatt.connect();
+			// device.gatt.connect().then(service => {
+			// 	console.log('> bluetooth device connected2', service);
+			// });
+			// return;
 			console.log('> bluetooth device connected');
 			service = await server.getPrimaryService(bluetoothServiceUUID);
 			console.log('> bluetooth service found');
