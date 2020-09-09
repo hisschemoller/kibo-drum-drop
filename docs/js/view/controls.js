@@ -2,7 +2,7 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { pitches } from '../utils/utils.js';
 import { NOTE_ON, NOTE_OFF } from '../midi/midi.js';
 
-let rootEl, settingsBtn, shapeEls, waveformEl, recordArmEl;
+let rootEl, settingsBtn, shapeEls, waveformEl;
 let resetKeyCombo = [];
 let dragIndex = -1;
 
@@ -66,10 +66,6 @@ function addEventListeners() {
           break;
       }
     }
-  });
-
-  recordArmEl.addEventListener('change', e => {
-    dispatch(getActions().toggleRecordArm());
   });
 
   settingsBtn.addEventListener('click',e => {
@@ -156,11 +152,6 @@ function handleStateChanges(e) {
     
     case actions.SET_PROJECT:
       updateShapes(state);
-      updateRecordArm(state);
-      break;
-      
-    case actions.TOGGLE_RECORD_ARM:
-			updateRecordArm(state);
       break;
   }
 }
@@ -217,16 +208,7 @@ export function setup() {
   settingsBtn = document.querySelector('#settings-btn');
   shapeEls = document.querySelectorAll('.shape');
   waveformEl = document.querySelector('#waveform');
-  recordArmEl = document.querySelector('#controls__record-arm');
   addEventListeners();
-}
-
-/**
- * Update the record arm button state.
- * @param {Object} state Application state.
- */
-function updateRecordArm(state) {
-  recordArmEl.checked = state.isRecordArmed;
 }
 
 /**

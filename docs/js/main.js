@@ -4,6 +4,7 @@ import { accessMidi, setup as setupMidi, } from './midi/midi.js';
 import { setup as setupBluetooth } from './bluetooth/bluetooth.js';
 import { setup as setupControls } from './view/controls.js';
 import { setup as setupDialog } from './view/dialog.js';
+import { setup as setupRecord } from './view/record.js';
 import { setup as setupSettings } from './view/settings.js';
 import { setup as setupWaveform } from './view/waveform.js';
 
@@ -17,6 +18,7 @@ async function main() {
   } finally {
     setupAudio();
     setupDialog();
+    setupRecord();
     setupSettings();
     setupControls();
     setupWaveform();
