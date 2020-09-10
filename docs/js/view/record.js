@@ -2,7 +2,7 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { getAudioContext } from '../audio/audio.js';
 
 let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
-let analyser, source, stream, bufferLength, dataArray;
+let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode;
 
 /**
  * Add event listeners.
@@ -59,6 +59,10 @@ function handleStateChanges(e) {
     case actions.TOGGLE_RECORD_ARM:
 			updateRecordArm(state);
       break;
+    
+    case actions.TOGGLE_RECORDING:
+      updateRecording(state);
+      break;
   }
 }
 
@@ -96,9 +100,18 @@ function setupMeter() {
   dataArray = new Uint8Array(bufferLength);
   analyser.getByteTimeDomainData(dataArray);
 
+  audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
+    recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
+    recorderWorkletNode.port.onmessage = e => {
+      console.log(e.data.length, e.data[0]);
+    };
+  }).catch(error => {
+    console.log(error);
+  });
 }
 
 /**
+ * Open audio stream.
  * Stackoverflow: Web Audio API creating a Peak Meter with AnalyserNode
  * @see https://stackoverflow.com/a/44360625
  * @param {Object} state Application state.
@@ -128,4 +141,17 @@ async function updateRecordArm(state) {
 			stream.getTracks().forEach(track => track.stop());
     }
 	}
+}
+
+/**
+ * Toggle recording.
+ * @param {Object} state Application state.
+ */
+function updateRecording(state) {
+  const { isRecording } = state;
+  if (isRecording) {
+    source.connect(recorderWorkletNode);
+  } else {
+    source.disconnect(recorderWorkletNode);
+  }
 }

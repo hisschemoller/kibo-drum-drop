@@ -5,6 +5,7 @@ import { NOTE_ON, NOTE_OFF } from '../midi/midi.js';
 let rootEl, settingsBtn, shapeEls, waveformEl;
 let resetKeyCombo = [];
 let dragIndex = -1;
+let mouseDownTimeoutId;
 
 /**
  * Add event listeners.
@@ -77,13 +78,24 @@ function addEventListeners() {
     shapeEl.addEventListener('dragover', handleDrag);
     shapeEl.addEventListener('dragleave', handleDragLeave);
     shapeEl.addEventListener('drop', handleDrop);
-    shapeEl.addEventListener('click', handlePadClick);
+    shapeEl.addEventListener('mousedown', handlePadMouseDown);
   });
 
   waveformEl.addEventListener('dragenter', handleWaveformDrag);
   waveformEl.addEventListener('dragover', handleWaveformDrag);
   waveformEl.addEventListener('dragleave', handleWaveformDragLeave);
   waveformEl.addEventListener('drop', handleWaveformDrop);
+}
+
+/**
+ * Mouse up anywhere in document.
+ * @param {Object} e event.
+ */
+function handleDocumentMouseUp(e) {
+  e.preventDefault();
+  clearTimeout(mouseDownTimeoutId);
+  document.removeEventListener('mouseup', handleDocumentMouseUp);
+  dispatch(getActions().toggleRecording(false));
 }
 
 /**
@@ -124,12 +136,20 @@ function handleDrop(e) {
 }
 
 /**
- * Click on pad shapes.
+ * Mouse down on pad shapes.
  * @param {Object} e event.
  */
-function handlePadClick(e) {
+function handlePadMouseDown(e) {
   e.preventDefault();
   const index = [ ...e.target.parentElement.children ].indexOf(e.target);
+  document.addEventListener('mouseup', handleDocumentMouseUp);
+
+  mouseDownTimeoutId = setTimeout(() => {
+
+    // start recording
+    dispatch(getActions().toggleRecording(true));
+  }, 500);
+
   dispatch(getActions().selectSound(index));
 }
 
@@ -147,7 +167,7 @@ function handleStateChanges(e) {
     
 		case actions.LOAD_AUDIOFILE:
     case actions.SELECT_SOUND:
-			
+			updateShapes(state);
       break;
     
     case actions.SET_PROJECT:
