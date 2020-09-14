@@ -12,6 +12,7 @@ function addEventListeners() {
  */
 async function connect() {
 	const options = {
+		// acceptAllDevices: true,
 		filters: [{
 			services: [ bluetoothServiceUUID ],
 		}],
@@ -26,21 +27,13 @@ async function connect() {
 		console.log('> bluetooth device found');
 		if (!device.gatt.connected) {
 			console.log('> bluetooth device connecting...');
-			console.log('> bluetooth device', device);
-			console.log('> bluetooth device.gatt', device.gatt);
 			server = await device.gatt.connect();
-			// device.gatt.connect().then(service => {
-			// 	console.log('> bluetooth device connected2', service);
-			// });
-			// return;
 			console.log('> bluetooth device connected');
 			service = await server.getPrimaryService(bluetoothServiceUUID);
 			console.log('> bluetooth service found');
 			const characteristics = await service.getCharacteristics();
 			console.log('> bluetooth characteristics found: ', characteristics.length);
 			characteristic = characteristics[0];
-			console.log('> bluetooth characteristic found');
-			console.log('> bluetooth characteristic', characteristic);
 			if (characteristic.properties.notify) {
 				console.log('> bluetooth characteristic has notifications');
 				await characteristic.startNotifications();
@@ -74,10 +67,16 @@ function handleStateChanges(e) {
  * @param {Event} e 
  */
 function onCharacteristicValueChanged(e) {
-	const { value } = e.target;
-	console.log('onCharacteristicValueChanged', value);
-	// dispatch(getActions().handleMIDIMessage(value.getUint8(2), value.getUint8(3), value.getUint8(4)));
-	dispatch(getActions().playNote(value.getUint8(2) & 0xf0, value.getUint8(2) & 0x0f, value.getUint8(3), value.getUint8(4)));
+	const { value: data } = e.target;
+	switch (data.byteLength) {
+		case 5:
+			// dispatch(getActions().handleMIDIMessage(data.getUint8(2), data.getUint8(3), data.getUint8(4)));
+			dispatch(getActions().playNote(data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3), data.getUint8(4)));
+			break;
+		case 4:
+			console.log('knob:', data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3));
+			break;
+	} 
 }
 
 /**
