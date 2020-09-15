@@ -4,8 +4,7 @@ import { getAudioContext } from '../audio/audio.js';
 // maximum recording length is 4 seconds
 const recBufferMaxLength = 44100 * 4;
 let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
-let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode;
-let recBuffer = [];
+let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode, recBuffer, recIndex;
 
 /**
  * Add event listeners.
@@ -75,6 +74,8 @@ function handleStateChanges(e) {
 export function setup() {
   recordArmEl = document.querySelector('#controls__record-arm');
   recordMeterEl = document.querySelector('#controls__record-meter');
+  recBuffer = new Array(recBufferMaxLength);
+  recBuffer.fill(0);
   addEventListeners();
 }
 
@@ -106,13 +107,16 @@ function setupMeter() {
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
     recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
     recorderWorkletNode.port.onmessage = e => {
-      recBuffer = [ ...recBuffer, ...e.data ];
-      if (recBuffer.length >= recBufferMaxLength) {
+      recBuffer.splice(recIndex, e.data.length, ...e.data);
+      recIndex += e.data.length;
+      
+      if (recIndex >= recBufferMaxLength) {
         recBuffer.length = recBufferMaxLength;
         dispatch(getActions().toggleRecording(false));
       }
-      console.log(recBuffer.length);
+      console.log(recIndex, recBuffer.length);
     };
+    source.connect(recorderWorkletNode);
   }).catch(error => {
     console.log(error);
   });
@@ -137,7 +141,6 @@ async function updateRecordArm(state) {
       setupMeter();
       source = getAudioContext().createMediaStreamSource(stream);
       source.connect(analyser);
-      source.connect(recorderWorkletNode);
       draw();
 		} catch(error) {
       console.log('Record arm error: ', error);
@@ -164,7 +167,8 @@ async function updateRecordArm(state) {
 function updateRecording(state) {
   const { isRecording } = state;
   if (isRecording) {
-    recBuffer.length = 0;
+    recIndex = 0;
+    recBuffer.fill(0);
     recorderWorkletNode.port.postMessage('startRecording');
   } else {
     recorderWorkletNode.port.postMessage('stopRecording');
