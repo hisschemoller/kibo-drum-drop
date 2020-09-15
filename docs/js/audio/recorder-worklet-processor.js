@@ -10,6 +10,17 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
     super();
     this.buffer = [];
     this.bufferTreshold = 22050;
+    this.isRecording = false;
+    this.port.onmessage = e => {
+      switch (e.data) {
+        case 'startRecording':
+          this.isRecording = true;
+          break;
+        case 'stopRecording':
+          this.isRecording = false;
+          break;
+      }
+    };
   }
 
   /**
@@ -19,7 +30,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
    * @param {*} parameters 
    */
   process(inputs, outputs, parameters) {
-    if (inputs && inputs[0].length) {
+    if (this.isRecording && inputs && inputs[0].length) {
       const channel = inputs[0][0];
       const numSamples = channel.length;
       for (let i = 0; i < numSamples; i++) {

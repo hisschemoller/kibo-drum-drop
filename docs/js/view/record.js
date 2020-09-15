@@ -1,8 +1,11 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getAudioContext } from '../audio/audio.js';
 
+// maximum recording length is 4 seconds
+const recBufferMaxLength = 44100 * 4;
 let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
 let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode;
+let recBuffer = [];
 
 /**
  * Add event listeners.
@@ -103,7 +106,12 @@ function setupMeter() {
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
     recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
     recorderWorkletNode.port.onmessage = e => {
-      console.log(e.data.length, e.data[0]);
+      recBuffer = [ ...recBuffer, ...e.data ];
+      if (recBuffer.length >= recBufferMaxLength) {
+        recBuffer.length = recBufferMaxLength;
+        dispatch(getActions().toggleRecording(false));
+      }
+      console.log(recBuffer.length);
     };
   }).catch(error => {
     console.log(error);
@@ -118,13 +126,18 @@ function setupMeter() {
  */
 async function updateRecordArm(state) {
   const { isRecordArmed } = state;
+
+  // set the checkbox
   recordArmEl.checked = isRecordArmed;
+
+  // create an audiostream source and show analyser
 	if (isRecordArmed) {
 		try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       setupMeter();
       source = getAudioContext().createMediaStreamSource(stream);
       source.connect(analyser);
+      source.connect(recorderWorkletNode);
       draw();
 		} catch(error) {
       console.log('Record arm error: ', error);
@@ -135,6 +148,7 @@ async function updateRecordArm(state) {
     // disconnect source and close stream
     if (source) {
       source.disconnect(analyser);
+      source.disconnect(recorderWorkletNode);
       source = null;
     }
 		if (stream) {
@@ -150,8 +164,9 @@ async function updateRecordArm(state) {
 function updateRecording(state) {
   const { isRecording } = state;
   if (isRecording) {
-    source.connect(recorderWorkletNode);
+    recBuffer.length = 0;
+    recorderWorkletNode.port.postMessage('startRecording');
   } else {
-    source.disconnect(recorderWorkletNode);
+    recorderWorkletNode.port.postMessage('stopRecording');
   }
 }
