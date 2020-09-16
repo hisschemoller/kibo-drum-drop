@@ -79,31 +79,14 @@ export function setup() {
   addEventListeners();
 }
 
-/**
- * Create the record meter the first time it is requested. 
- */
-function setupMeter() {
-  if (analyser) {
+function setupAudioWorklet() {
+  if (recorderWorkletNode) {
+    source.connect(recorderWorkletNode);
     return;
   }
 
-  canvasEl = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
-  recordMeterEl.appendChild(canvasEl);
-	canvasEl.height = recordMeterEl.clientHeight;
-  canvasEl.width = recordMeterEl.clientWidth;
-  canvasRect = canvasEl.getBoundingClientRect();
-  canvasCtx = canvasEl.getContext('2d');
-  canvasCtx.fillStyle = 'rgb(255, 255, 255)';
-  canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
 
   const audioCtx = getAudioContext();
-  analyser = audioCtx.createAnalyser();
-  analyser.fftSize = 2048;
-  bufferLength = analyser.fftSize;
-  dataArray = new Uint8Array(bufferLength);
-  analyser.getByteTimeDomainData(dataArray);
-
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
     recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
     recorderWorkletNode.port.onmessage = e => {
@@ -126,12 +109,36 @@ function setupMeter() {
         recBuffer.length = recBufferMaxLength;
         dispatch(getActions().toggleRecording(false));
       }
-      console.log(recIndex, recBuffer.length);
     };
     source.connect(recorderWorkletNode);
   }).catch(error => {
     console.log(error);
   });
+}
+
+/**
+ * Create the record meter the first time it is requested. 
+ */
+function setupMeter() {
+  if (analyser) {
+    return;
+  }
+
+  canvasEl = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
+  recordMeterEl.appendChild(canvasEl);
+	canvasEl.height = recordMeterEl.clientHeight;
+  canvasEl.width = recordMeterEl.clientWidth;
+  canvasRect = canvasEl.getBoundingClientRect();
+  canvasCtx = canvasEl.getContext('2d');
+  canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+  canvasCtx.lineWidth = 2;
+  canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+
+  analyser = getAudioContext().createAnalyser();
+  analyser.fftSize = 2048;
+  bufferLength = analyser.fftSize;
+  dataArray = new Uint8Array(bufferLength);
+  analyser.getByteTimeDomainData(dataArray);
 }
 
 /**
@@ -153,6 +160,7 @@ async function updateRecordArm(state) {
       setupMeter();
       source = getAudioContext().createMediaStreamSource(stream);
       source.connect(analyser);
+      setupAudioWorklet();
       draw();
 		} catch(error) {
       console.log('Record arm error: ', error);
