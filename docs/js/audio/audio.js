@@ -245,24 +245,30 @@ function updateAudioBuffers(state) {
 			const { buffer: bufferStr, name } = pad;
 			if (!buffers[index] || buffers[index].name !== name) {
 
-				// convert string to audiobuffer
+				// convert String to ArrayBuffer
 				const arrayBuffer = new ArrayBuffer(bufferStr.length);
 				const dataView = new DataView(arrayBuffer);
 				for (let i = 0, n = arrayBuffer.byteLength; i < n; i++) {
 					dataView.setUint8(i, bufferStr.charCodeAt(i));
 				}
 
-				audioCtx.decodeAudioData(arrayBuffer).then(buffer => {
-					buffers[index] = { name, buffer, };
-					
-					// get maximum amplitude, for normalizing
-					const channelData = buffer.getChannelData(0);
-					let maxAmplitude = 0;
-					for (let i = 0, n = channelData.length; i < n; i++) {
-						maxAmplitude = Math.max(maxAmplitude, Math.abs(channelData[i]));
-					}
-					dispatch({ type: getActions().AUDIOFILE_DECODED, index, maxAmplitude, numSamples: buffer.length, });
-				});
+				// convert ArrayBuffer to AudioBuffer
+				const float32Array = new Float32Array(arrayBuffer);
+				const channels = 1;
+				const audioBuffer = audioCtx.createBuffer(channels, float32Array.length, audioCtx.sampleRate);
+				const audioBufferChannel = audioBuffer.getChannelData(0);
+				for (let i = 0, n = float32Array.length; i < n; i++) {
+					audioBufferChannel[i] = float32Array[i];
+				}
+				buffers[index] = { name, buffer: audioBuffer, };
+
+				// get maximum amplitude, for normalizing
+				const channelData = audioBuffer.getChannelData(0);
+				let maxAmplitude = 0;
+				for (let i = 0, n = channelData.length; i < n; i++) {
+					maxAmplitude = Math.max(maxAmplitude, Math.abs(channelData[i]));
+				}
+				dispatch({ type: getActions().AUDIOFILE_DECODED, index, maxAmplitude, numSamples: audioBuffer.length, });
 			}
 		}
 	});

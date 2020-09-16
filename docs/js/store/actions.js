@@ -1,5 +1,5 @@
 import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
-import { NOTE_OFF } from '../midi/midi.js';
+import { getAudioContext } from '../audio/audio.js';
 import { showDialog } from '../view/dialog.js';
 
 const AUDIOFILE_DECODED = 'AUDIOFILE_DECODED';
@@ -77,13 +77,27 @@ export default {
           
           // convert arrayBuffer to string
           // @see https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-          const buffer = String.fromCharCode.apply(null, new Uint8Array(e.target.result));
-          
-          dispatch({
-            type: LOAD_AUDIOFILE,
-            buffer,
-            name,
-            padIndex,
+          // const buffer = String.fromCharCode.apply(null, new Uint8Array(e.target.result));
+
+          // File to AudioBuffer to ArrayBuffer
+          getAudioContext().decodeAudioData(e.target.result).then(audioBuffer => {
+            const float32Array = audioBuffer.getChannelData(0);
+            const arrayBuffer = float32Array.buffer;
+            // const bufferStr = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
+
+            // ArrayBuffer to String
+            const uint8Array = new Uint8Array(arrayBuffer);
+            let binaryStr = '';
+            for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
+              binaryStr += String.fromCharCode(uint8Array[i]);
+            }
+
+            dispatch({
+              type: LOAD_AUDIOFILE,
+              buffer: binaryStr,
+              name,
+              padIndex,
+            });
           });
         };
 
