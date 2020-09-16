@@ -9,7 +9,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
     this.buffer = [];
-    this.bufferTreshold = 22050;
+    this.bufferTreshold = 11025; // 22050;
     this.isRecording = false;
     this.port.onmessage = e => {
       switch (e.data) {

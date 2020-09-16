@@ -1,5 +1,6 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getAudioContext } from '../audio/audio.js';
+import addWindowResizeCallback from './windowresize.js';
 
 // maximum recording length is 4 seconds
 const recBufferMaxLength = 44100 * 4;
@@ -14,6 +15,7 @@ function addEventListeners() {
   recordArmEl.addEventListener('change', e => {
     dispatch(getActions().toggleRecordArm());
   });
+  addWindowResizeCallback(handleWindowResize);
 }
 
 /**
@@ -69,6 +71,13 @@ function handleStateChanges(e) {
 }
 
 /**
+ * Window resize event handler.
+ */
+function handleWindowResize() {
+	updateCanvas();
+}
+
+/**
  * General module setup.
  */
 export function setup() {
@@ -84,7 +93,6 @@ function setupAudioWorklet() {
     source.connect(recorderWorkletNode);
     return;
   }
-
 
   const audioCtx = getAudioContext();
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
@@ -126,19 +134,23 @@ function setupMeter() {
 
   canvasEl = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
   recordMeterEl.appendChild(canvasEl);
-	canvasEl.height = recordMeterEl.clientHeight;
-  canvasEl.width = recordMeterEl.clientWidth;
-  canvasRect = canvasEl.getBoundingClientRect();
   canvasCtx = canvasEl.getContext('2d');
-  canvasCtx.fillStyle = 'rgb(255, 255, 255)';
-  canvasCtx.lineWidth = 2;
-  canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
-
+  updateCanvas();
+	
   analyser = getAudioContext().createAnalyser();
   analyser.fftSize = 2048;
   bufferLength = analyser.fftSize;
   dataArray = new Uint8Array(bufferLength);
   analyser.getByteTimeDomainData(dataArray);
+}
+
+function updateCanvas() {
+  canvasEl.height = recordMeterEl.clientHeight;
+  canvasEl.width = recordMeterEl.clientWidth;
+  canvasRect = canvasEl.getBoundingClientRect();
+  canvasCtx.fillStyle = 'rgb(255, 255, 255)';
+  canvasCtx.lineWidth = 2;
+  canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
 }
 
 /**

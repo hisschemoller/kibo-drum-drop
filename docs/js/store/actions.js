@@ -75,10 +75,6 @@ export default {
         const fileReader = new FileReader();
 
         fileReader.onload = e => {
-          
-          // convert arrayBuffer to string
-          // @see https://developers.google.com/web/updates/2012/06/How-to-convert-ArrayBuffer-to-and-from-String
-          // const buffer = String.fromCharCode.apply(null, new Uint8Array(e.target.result));
 
           // File to AudioBuffer to ArrayBuffer
           getAudioContext().decodeAudioData(e.target.result).then(audioBuffer => {

@@ -92,8 +92,8 @@ body {
   outline: none;
   padding: 10px;
   position: absolute;
-  right: 20px;
-  top: 20px;
+  right: 28px;
+  top: 28px;
   width: 20px;
 }
 #waveform {
@@ -119,6 +119,7 @@ body {
   flex-grow: 1;
   height: 80px;
   margin-left: 10px;
+  overflow: hidden;
 }
 .btn {
   align-items: center;

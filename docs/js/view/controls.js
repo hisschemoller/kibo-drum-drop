@@ -148,7 +148,7 @@ function handlePadMouseDown(e) {
 
     // start recording
     dispatch(getActions().toggleRecording(true));
-  }, 500);
+  }, 50);
 
   dispatch(getActions().selectSound(index));
 }
