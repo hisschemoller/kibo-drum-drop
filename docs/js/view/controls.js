@@ -166,6 +166,7 @@ function handleStateChanges(e) {
       break;
     
 		case actions.LOAD_AUDIOFILE:
+    case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:
 			updateShapes(state);
       break;

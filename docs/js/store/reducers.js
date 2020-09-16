@@ -90,6 +90,28 @@ export default function reduce(state = initialState, action, actions = {}) {
       };
     }
 
+    case actions.RECORD_AUDIOSTREAM: {
+      const { buffer, name } = action;
+      const { pads, selectedIndex } = state;
+      return { 
+        ...state,
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === selectedIndex) {
+            return [ ...accumulator, { 
+              buffer, 
+              maxAmplitude: 0,
+              name,
+              numSamples: 0,
+              startOffset: 0,
+              firstWaveformSample: 0,
+              numWaveformSamples: 0,
+            } ];
+          }
+          return [ ...accumulator, pad ];
+        }, []),
+      };
+    }
+
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD: {
       const { padIndex, } = action;
       const { pads, } = state;

@@ -109,6 +109,18 @@ function setupMeter() {
     recorderWorkletNode.port.onmessage = e => {
       recBuffer.splice(recIndex, e.data.length, ...e.data);
       recIndex += e.data.length;
+
+      // convert Array to Float32Array
+      var float32Array = new Float32Array(recBuffer);
+
+      // ArrayBuffer to String
+      const uint8Array = new Uint8Array(float32Array.buffer);
+      let binaryStr = '';
+      for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
+        binaryStr += String.fromCharCode(uint8Array[i]);
+      }
+
+      dispatch(getActions().recordAudioStream(binaryStr));
       
       if (recIndex >= recBufferMaxLength) {
         recBuffer.length = recBufferMaxLength;

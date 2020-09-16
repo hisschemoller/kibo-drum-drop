@@ -73,6 +73,7 @@ function handleStateChanges(e) {
 	switch (action.type) {
 
 		case actions.LOAD_AUDIOFILE:
+		case actions.RECORD_AUDIOSTREAM:
 			updateAudioBuffers(state);
 			break;
 
@@ -239,11 +240,11 @@ function stopNote(nowToStopInSecs, pitch, velocity) {
  * @param {Object} state Application state.
  */
 function updateAudioBuffers(state) {
-	const { pads } = state;
+	const { isRecording, pads } = state;
 	pads.map((pad, index) => {
 		if (pad) {
 			const { buffer: bufferStr, name } = pad;
-			if (!buffers[index] || buffers[index].name !== name) {
+			if (!buffers[index] || buffers[index].name !== name || isRecording) {
 
 				// convert String to ArrayBuffer
 				const arrayBuffer = new ArrayBuffer(bufferStr.length);

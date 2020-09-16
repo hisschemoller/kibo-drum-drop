@@ -12,6 +12,7 @@ const LOAD_AUDIOFILE = 'LOAD_AUDIOFILE';
 const NEW_PROJECT = 'NEW_PROJECT';
 const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
+const RECORD_AUDIOSTREAM = 'RECORD_AUDIOSTREAM';
 const RELOAD_AUDIOFILE_ON_SAME_PAD = 'RELOAD_AUDIOFILE_ON_SAME_PAD';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
@@ -83,7 +84,6 @@ export default {
           getAudioContext().decodeAudioData(e.target.result).then(audioBuffer => {
             const float32Array = audioBuffer.getChannelData(0);
             const arrayBuffer = float32Array.buffer;
-            // const bufferStr = String.fromCharCode.apply(null, new Uint8Array(arrayBuffer));
 
             // ArrayBuffer to String
             const uint8Array = new Uint8Array(arrayBuffer);
@@ -130,6 +130,18 @@ export default {
 
   POPULATE,
   populate: () => ({ type: POPULATE }),
+
+  RECORD_AUDIOSTREAM,
+  recordAudioStream: binaryStr => {
+    return (dispatch, getState, getActions) => {
+      const { selectedIndex } = getState();
+      return {
+        type: RECORD_AUDIOSTREAM,
+        buffer: binaryStr,
+        name: `Recording ${selectedIndex}`,
+      };
+    };
+  },
 
   RELOAD_AUDIOFILE_ON_SAME_PAD,
 
