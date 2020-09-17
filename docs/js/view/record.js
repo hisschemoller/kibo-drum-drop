@@ -3,7 +3,7 @@ import { getAudioContext } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
 
 // maximum recording length is 4 seconds
-const recBufferMaxLength = 44100 * 4;
+const recBufferMaxLength = 44100 * 1;
 let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
 let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode, recBuffer, recIndex;
 
