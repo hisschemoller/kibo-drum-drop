@@ -12,3 +12,4 @@ export function createUUID() {
 export let lowestOctave = 4;
 export let numOctaves = 4;
 export let pitches = [60, 62, 64, 65, 67, 69, 71, 72];
+export let continuousControllers = [102, 103, 104, 105, 106, 107, 108, 109];

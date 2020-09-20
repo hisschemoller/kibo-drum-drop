@@ -1,8 +1,10 @@
 import { dispatch, getActions, STATE_CHANGE, } from '../store/store.js';
 
-export const NOTE_ON = 144;
-export const NOTE_OFF = 128;
-export const CONTROL_CHANGE = 176;
+export const NOTE_OFF = 128; // 0x80
+export const NOTE_ON = 144; // 0x90
+export const POLY_KEY_PRESSURE = 160; // 0xA0
+export const CONTROL_CHANGE = 176; // 0xB0
+export const PROGRAM_CHANGE = 176; // 0xC0
 export const SYSTEM_REALTIME = 240;
 export const REALTIME_CLOCK = 248;
 export const REALTIME_START = 250;

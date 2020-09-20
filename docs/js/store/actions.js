@@ -1,6 +1,7 @@
-import { createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
+import { continuousControllers, createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
 import { getAudioContext } from '../audio/audio.js';
 import { showDialog } from '../view/dialog.js';
+import { NOTE_OFF, NOTE_ON, POLY_KEY_PRESSURE, CONTROL_CHANGE } from '../midi/midi.js';
 
 const AUDIOFILE_DECODED = 'AUDIOFILE_DECODED';
 const BLUETOOTH_CONNECT = 'BLUETOOTH_CONNECT';
@@ -106,21 +107,57 @@ export default {
   newProject: () => ({ type: NEW_PROJECT, }),
 
   PLAY_NOTE,
-  playNote: (command, channel, pitch, velocity) => {
+  playNote: (command, channel, data0, data1) => {
     return (dispatch, getState, getActions) => {
       const { pads, visibleWidth, visibleHeight, } = getState();
-      const index = pitches.indexOf(pitch);
+      const index = pitches.indexOf(data0);
+
+      switch (command) {
+        case NOTE_OFF:
+          console.log('NOTE_OFF pad', index, ', velocity', data1);
+          break;
+        
+        case NOTE_ON:
+          console.log('NOTE_ON pad', index, ', velocity', data1);
+          break;
+      
+        case POLY_KEY_PRESSURE:
+          // console.log('POLY_KEY_PRESSURE pad', index, ', value ', data1);
+          break;
+
+        case CONTROL_CHANGE:
+          switch (data0) {
+            case 117:
+              console.log('knob turn, value ', data1);
+              break;
+
+            case 118:
+              console.log('knob double click, value ', data1);
+              break;
+
+            case 119:
+              console.log('knob click, value ', data1);
+              break;
+
+            default:
+              const padIndex = continuousControllers.indexOf(data0);
+              if (padIndex !== -1) {
+                if (data1 === 127) {
+                  console.log('shape enter, index ', padIndex);
+                } else {
+                  console.log('shape remove, index ', padIndex);
+                }
+              }
+          }
+          break;
+      }
 
       if (index === -1) {
         return;
       }
 
-      return {
-        type: PLAY_NOTE,
-        command,
-        index,
-        velocity,
-      };
+      const velocity = data1;
+      return { type: PLAY_NOTE, command, index, velocity, };
     };
   },
 

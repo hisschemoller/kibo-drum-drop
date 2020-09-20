@@ -64,17 +64,22 @@ function handleStateChanges(e) {
 
 /**
  * 
- * @param {Event} e 
+ * @param {Event} e
+ * @param {Object} e.data
+ * byte 0: [10xxxxxx] Header bit, reserved bit for future, timestamp high
+ * byte 1: [1xxxxxxx] Timestamp low
+ * byte 3: [1xxxxxxx] MIDI status
+ * byte 4: [0xxxxxxx] MIDI data 0
+ * byte 5: [0xxxxxxx] MIDI data 1
  */
 function onCharacteristicValueChanged(e) {
 	const { value: data } = e.target;
 	switch (data.byteLength) {
 		case 5:
-			// dispatch(getActions().handleMIDIMessage(data.getUint8(2), data.getUint8(3), data.getUint8(4)));
 			dispatch(getActions().playNote(data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3), data.getUint8(4)));
 			break;
 		case 4:
-			console.log('knob:', data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3));
+			// console.log('knob:', data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3));
 			break;
 	} 
 }
