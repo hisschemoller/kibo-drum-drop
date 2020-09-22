@@ -165,6 +165,7 @@ function handleStateChanges(e) {
       playNote(state);
       break;
     
+    case actions.RECORD_ERASE:
 		case actions.LOAD_AUDIOFILE:
     case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:

@@ -14,6 +14,7 @@ const NEW_PROJECT = 'NEW_PROJECT';
 const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
 const RECORD_AUDIOSTREAM = 'RECORD_AUDIOSTREAM';
+const RECORD_ERASE = 'RECORD_ERASE';
 const RELOAD_AUDIOFILE_ON_SAME_PAD = 'RELOAD_AUDIOFILE_ON_SAME_PAD';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
@@ -152,6 +153,7 @@ export default {
                   dispatch(getActions().toggleRecording(true, padIndex));
                 } else {
                   console.log('shape remove, index ', padIndex);
+                  dispatch(getActions().recordErase(padIndex));
                 }
               }
           }
@@ -172,6 +174,18 @@ export default {
         buffer: binaryStr,
         name: `Recording ${selectedIndex}`,
       };
+    };
+  },
+
+  RECORD_ERASE,
+  recordErase: padIndex => {
+    return (dispatch, getState, getActions) => {
+      const { isRecordArmed, pads, selectedIndex, } = getState();
+      if (isRecordArmed) {
+        const isValidPadIndex = !isNaN(padIndex) && padIndex >= 0 && padIndex < pads.length;
+        const index = isValidPadIndex ? padIndex : selectedIndex;
+        return { type: RECORD_ERASE, index };
+      }
     };
   },
 

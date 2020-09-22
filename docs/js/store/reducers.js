@@ -97,7 +97,8 @@ export default function reduce(state = initialState, action, actions = {}) {
         ...state,
         pads: pads.reduce((accumulator, pad, index) => {
           if (index === selectedIndex) {
-            return [ ...accumulator, { 
+            return [ ...accumulator, {
+              ...pad,
               buffer, 
               maxAmplitude: 0,
               name,
@@ -107,7 +108,22 @@ export default function reduce(state = initialState, action, actions = {}) {
               numWaveformSamples: 0,
             } ];
           }
-          return [ ...accumulator, pad ];
+          return [ ...accumulator, pad, ];
+        }, []),
+      };
+    }
+    
+    case actions.RECORD_ERASE: {
+      const { index } = action;
+      const { pads, } = state;
+      return { 
+        ...state,
+        selectedIndex: index,
+        pads: pads.reduce((accumulator, pad, i) => {
+          if (i === index) {
+            return [ ...accumulator, null, ];
+          }
+          return [ ...accumulator, pad, ];
         }, []),
       };
     }

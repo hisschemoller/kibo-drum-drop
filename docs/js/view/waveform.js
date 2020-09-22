@@ -23,6 +23,13 @@ function addEventListeners() {
 }
 
 /**
+ * Clear the waveform canvas.
+ */
+function clearWaveform() {
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+}
+
+/**
  * Draw waveform, filled or line based on blockSize.
  */
 function drawWaveform() {
@@ -181,6 +188,7 @@ function handleStateChanges(e) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED:
+    case actions.RECORD_ERASE:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
       showWaveform(state);
@@ -239,6 +247,7 @@ function showWaveform(state) {
   const { pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
+    clearWaveform();
     return;
   }
 
@@ -246,6 +255,7 @@ function showWaveform(state) {
   const buffer = getBuffer(selectedIndex);
 
   if (!buffer) {
+    clearWaveform();
     return;
   }
 
