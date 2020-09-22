@@ -13,10 +13,12 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
     this.isRecording = false;
     this.port.onmessage = e => {
       switch (e.data) {
+
         case 'startRecording':
           this.buffer.length = 0;
           this.isRecording = true;
           break;
+        
         case 'stopRecording':
           this.isRecording = false;
           break;

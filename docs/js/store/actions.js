@@ -68,10 +68,7 @@ export default {
           `Files up to 1 MB are allowed.`,
           'Ok');
       } else if(isSameFileOnSamePad) {
-        dispatch({
-          type: RELOAD_AUDIOFILE_ON_SAME_PAD,
-          padIndex,
-        });
+        dispatch({ type: RELOAD_AUDIOFILE_ON_SAME_PAD, padIndex, });
       } else {
         const fileReader = new FileReader();
 
@@ -115,10 +112,18 @@ export default {
       switch (command) {
         case NOTE_OFF:
           console.log('NOTE_OFF pad', index, ', velocity', data1);
+          if (index !== -1) {
+            const velocity = data1;
+            return { type: PLAY_NOTE, command, index, velocity, };
+          }
           break;
         
         case NOTE_ON:
           console.log('NOTE_ON pad', index, ', velocity', data1);
+          if (index !== -1) {
+            const velocity = data1;
+            return { type: PLAY_NOTE, command, index, velocity, };
+          }
           break;
       
         case POLY_KEY_PRESSURE:
@@ -144,6 +149,7 @@ export default {
               if (padIndex !== -1) {
                 if (data1 === 127) {
                   console.log('shape enter, index ', padIndex);
+                  dispatch(getActions().toggleRecording(true, padIndex));
                 } else {
                   console.log('shape remove, index ', padIndex);
                 }
@@ -151,13 +157,6 @@ export default {
           }
           break;
       }
-
-      if (index === -1) {
-        return;
-      }
-
-      const velocity = data1;
-      return { type: PLAY_NOTE, command, index, velocity, };
     };
   },
 
@@ -206,11 +205,13 @@ export default {
   toggleRecordArm: () => ({ type: TOGGLE_RECORD_ARM }),
 
   TOGGLE_RECORDING,
-  toggleRecording: isRecording => {
+  toggleRecording: (isRecording, padIndex) => {
     return (dispatch, getState, getActions) => {
-      const { isRecordArmed, } = getState();
+      const { isRecordArmed, pads, selectedIndex, } = getState();
       if (isRecordArmed) {
-        return { type: TOGGLE_RECORDING, isRecording };
+        const isValidPadIndex = !isNaN(padIndex) && padIndex >= 0 && padIndex < pads.length;
+        const index = isValidPadIndex ? padIndex : selectedIndex;
+        return { type: TOGGLE_RECORDING, isRecording, index };
       }
     };
   },

@@ -202,8 +202,8 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.TOGGLE_RECORDING: {
-      const { isRecording } = action;
-      return { ...state, isRecording };
+      const { isRecording, index: selectedIndex } = action;
+      return { ...state, isRecording, selectedIndex };
     }
 
     case actions.TOGGLE_RECORD_ARM: {
