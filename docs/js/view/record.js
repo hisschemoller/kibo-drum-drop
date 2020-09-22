@@ -199,9 +199,14 @@ async function updateRecordArm(state) {
 function updateRecording(state) {
   const { isRecording } = state;
   if (isRecording) {
+    recorderWorkletNode.port.postMessage('stopRecording');
     recIndex = 0;
     recBuffer.fill(0);
-    recorderWorkletNode.port.postMessage('startRecording');
+
+    // a short delay to avoid recording the sound of the shape in the Kibo.
+    setTimeout(() => {
+      recorderWorkletNode.port.postMessage('startRecording');
+    }, 50);
   } else {
     recorderWorkletNode.port.postMessage('stopRecording');
   }

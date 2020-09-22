@@ -10,13 +10,16 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
     super();
     this.buffer = [];
     this.bufferTreshold = 11025; // 22050;
+    this.isInputLevelTreshold = 0.2;
     this.isRecording = false;
+    this.isInputLevel = false;
     this.port.onmessage = e => {
       switch (e.data) {
 
         case 'startRecording':
           this.buffer.length = 0;
           this.isRecording = true;
+          this.isInputLevel = false;
           break;
         
         case 'stopRecording':
@@ -36,12 +39,25 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
     if (this.isRecording && inputs && inputs[0].length) {
       const channel = inputs[0][0];
       const numSamples = channel.length;
-      for (let i = 0; i < numSamples; i++) {
-        this.buffer.push(channel[i]);
+
+      // check for input level to start recording
+      if (!this.isInputLevel) {
+        for (let i = 0; i < numSamples; i++) {
+          if (Math.abs(channel[i]) >= this.isInputLevelTreshold) {
+            this.isInputLevel = true;
+          }
+        }
       }
-      if (this.buffer.length > this.bufferTreshold) {
-        this.port.postMessage(this.buffer);
-        this.buffer.length = 0;
+
+      // record the input
+      if (this.isInputLevel) {
+        for (let i = 0; i < numSamples; i++) {
+          this.buffer.push(channel[i]);
+        }
+        if (this.buffer.length > this.bufferTreshold) {
+          this.port.postMessage(this.buffer);
+          this.buffer.length = 0;
+        }
       }
     }
     return true;
