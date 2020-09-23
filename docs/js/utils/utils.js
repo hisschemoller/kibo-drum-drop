@@ -9,6 +9,7 @@ export function createUUID() {
   });
 }
 
+export let sampleRate = 22050;
 export let lowestOctave = 4;
 export let numOctaves = 4;
 export let pitches = [60, 62, 64, 65, 67, 69, 71, 72];

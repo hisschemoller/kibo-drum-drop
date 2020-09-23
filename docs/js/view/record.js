@@ -1,9 +1,10 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
+import { sampleRate } from '../utils/utils.js';
 import { getAudioContext } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
 
 // maximum recording length is 4 seconds
-const recBufferMaxLength = 44100 * 1;
+const recBufferMaxLength = sampleRate * 4;
 let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
 let analyser, source, stream, bufferLength, dataArray, recorderWorkletNode, recBuffer, recIndex;
 

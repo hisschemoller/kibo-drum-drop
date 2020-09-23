@@ -1,5 +1,5 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
-import { lowestOctave, numOctaves, pitches } from '../utils/utils.js';
+import { lowestOctave, numOctaves, pitches, sampleRate } from '../utils/utils.js';
 
 const NOTE_ON = 144;
 const NOTE_OFF = 128;
@@ -95,7 +95,7 @@ function handleStateChanges(e) {
 function initialiseAudio(state) {
 	const { isSettingsVisible } = state;
 	if (!audioCtx && !isSettingsVisible) {
-		audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+		audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate, });
 		createVoices();
 		updateAudioBuffers(state);
 	}
@@ -269,7 +269,7 @@ function updateAudioBuffers(state) {
 				for (let i = 0, n = channelData.length; i < n; i++) {
 					maxAmplitude = Math.max(maxAmplitude, Math.abs(channelData[i]));
 				}
-				
+
 				dispatch({ type: getActions().AUDIOFILE_DECODED, index, maxAmplitude, numSamples: audioBuffer.length, });
 			}
 		}
