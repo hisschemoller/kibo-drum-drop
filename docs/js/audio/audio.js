@@ -259,18 +259,11 @@ function updateAudioBuffers(state) {
 				const audioBuffer = audioCtx.createBuffer(channels, int16Array.length, audioCtx.sampleRate);
 				const audioBufferChannel = audioBuffer.getChannelData(0);
 				for (let i = 0, n = int16Array.length; i < n; i++) {
-					audioBufferChannel[i] = int16Array[i] / 0xFFFF;
+					audioBufferChannel[i] = int16Array[i] / 0x8000;
 				}
 				buffers[index] = { name, buffer: audioBuffer, };
 
-				// get maximum amplitude, for normalizing
-				const channelData = audioBuffer.getChannelData(0);
-				let maxAmplitude = 0;
-				for (let i = 0, n = channelData.length; i < n; i++) {
-					maxAmplitude = Math.max(maxAmplitude, Math.abs(channelData[i]));
-				}
-
-				dispatch({ type: getActions().AUDIOFILE_DECODED, index, maxAmplitude, numSamples: audioBuffer.length, });
+				dispatch({ type: getActions().AUDIOFILE_DECODED, index, numSamples: audioBuffer.length, });
 			}
 		}
 	});
