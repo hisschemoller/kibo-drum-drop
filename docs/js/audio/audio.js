@@ -254,12 +254,12 @@ function updateAudioBuffers(state) {
 				}
 
 				// convert ArrayBuffer to AudioBuffer
-				const float32Array = new Float32Array(arrayBuffer);
+				const int16Array = new Int16Array(arrayBuffer);
 				const channels = 1;
-				const audioBuffer = audioCtx.createBuffer(channels, float32Array.length, audioCtx.sampleRate);
+				const audioBuffer = audioCtx.createBuffer(channels, int16Array.length, audioCtx.sampleRate);
 				const audioBufferChannel = audioBuffer.getChannelData(0);
-				for (let i = 0, n = float32Array.length; i < n; i++) {
-					audioBufferChannel[i] = float32Array[i];
+				for (let i = 0, n = int16Array.length; i < n; i++) {
+					audioBufferChannel[i] = int16Array[i] / 0xFFFF;
 				}
 				buffers[index] = { name, buffer: audioBuffer, };
 
@@ -269,6 +269,7 @@ function updateAudioBuffers(state) {
 				for (let i = 0, n = channelData.length; i < n; i++) {
 					maxAmplitude = Math.max(maxAmplitude, Math.abs(channelData[i]));
 				}
+				
 				dispatch({ type: getActions().AUDIOFILE_DECODED, index, maxAmplitude, numSamples: audioBuffer.length, });
 			}
 		}

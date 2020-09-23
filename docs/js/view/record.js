@@ -101,11 +101,15 @@ function setupAudioWorklet() {
       recBuffer.splice(recIndex, e.data.length, ...e.data);
       recIndex += e.data.length;
 
-      // convert Array to Float32Array
-      var float32Array = new Float32Array(recBuffer);
+      // convert Array of Numbers from -1 to 1 to Int16Array
+      const int16Array = new Int16Array(recBuffer.length);
+      for (let i = 0, n = int16Array.byteLength; i < n; i++) {
+        const sample = Math.max(-1, Math.min(recBuffer[i], 1));
+        int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+      }
 
       // ArrayBuffer to String
-      const uint8Array = new Uint8Array(float32Array.buffer);
+      const uint8Array = new Uint8Array(int16Array.buffer);
       let binaryStr = '';
       for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
         binaryStr += String.fromCharCode(uint8Array[i]);
