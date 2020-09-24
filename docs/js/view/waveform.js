@@ -6,6 +6,7 @@ const padding = 10;
 const fillColor = '#eee';
 const strokeColor = '#999';
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
+const cache = [];
 let rootEl,
   canvasEl,
   canvasRect,
@@ -14,7 +15,8 @@ let rootEl,
   numBlocks, 
   blockSize, 
   firstSample,
-  numSamples;
+  numSamples,
+  cacheIndex;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -39,11 +41,18 @@ function drawWaveform() {
   numBlocks = canvasEl.width;
   blockSize = numSamples / numBlocks;
 
-  // Number.EPSILON will disable single line waveform
-  if (blockSize < Number.EPSILON) {
-    drawWaveformLine();
+  if (cache[cacheIndex]) {
+    console.log('from cache', cacheIndex);
+    ctx.putImageData(cache[cacheIndex], 0, 0);
   } else {
-    drawWaveformFilled();
+    console.log('draw', cacheIndex);
+    // Number.EPSILON will disable single line waveform
+    if (blockSize < Number.EPSILON) {
+      drawWaveformLine();
+    } else {
+      drawWaveformFilled();
+    }
+    cache[cacheIndex] = ctx.getImageData(0, 0, canvasRect.width, canvasRect.height);
   }
 }
 
@@ -183,6 +192,7 @@ function handleStateChanges(e) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED:
+    case actions.PLAY_NOTE:
     case actions.RECORD_ERASE:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
@@ -204,6 +214,7 @@ function handleWindowResize() {
 	canvasEl.height = rootEl.clientHeight;
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
+  cache.length = 0;
   drawWaveform();
 }
 
@@ -257,5 +268,6 @@ function showWaveform(state) {
   firstSample = firstWaveformSample;
   numSamples = numWaveformSamples;
   channelData = buffer.getChannelData(0);
+  cacheIndex = selectedIndex;
   drawWaveform();
 }
