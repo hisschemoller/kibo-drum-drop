@@ -80,8 +80,15 @@ export default {
             const float32Array = audioBuffer.getChannelData(0);
             const arrayBuffer = float32Array.buffer;
 
-            // ArrayBuffer to String
-            const uint8Array = new Uint8Array(arrayBuffer);
+            // convert Float32Array to Int16Array
+            const int16Array = new Int16Array(float32Array.length);
+            for (let i = 0, n = int16Array.length; i < n; i++) {
+              const sample = Math.max(-1, Math.min(float32Array[i], 1));
+              int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+            }
+
+            // Int16Array to String
+            const uint8Array = new Uint8Array(int16Array.buffer);
             let binaryStr = '';
             for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
               binaryStr += String.fromCharCode(uint8Array[i]);
