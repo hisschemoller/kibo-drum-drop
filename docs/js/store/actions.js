@@ -1,4 +1,4 @@
-import { continuousControllers, createUUID, lowestOctave, numOctaves, pitches } from '../utils/utils.js';
+import { continuousControllers, createUUID, lowestOctave, numOctaves, pitches, sampleRate } from '../utils/utils.js';
 import { getAudioContext } from '../audio/audio.js';
 import { showDialog } from '../view/dialog.js';
 import { NOTE_OFF, NOTE_ON, POLY_KEY_PRESSURE, CONTROL_CHANGE } from '../midi/midi.js';
@@ -63,7 +63,7 @@ export default {
           'No audio file', 
           `This file wasn't recognised as an audio file.`,
           'Ok');
-      } else if (size > 1000000) {
+      } else if (size > 10000000) {
         showDialog(
           'File too big', 
           `Files up to 1 MB are allowed.`,
@@ -81,9 +81,10 @@ export default {
             const arrayBuffer = float32Array.buffer;
 
             // convert Float32Array to Int16Array
-            const int16Array = new Int16Array(float32Array.length);
+            const audioMaxLength = sampleRate * 4;
+            const int16Array = new Int16Array(audioMaxLength);
             for (let i = 0, n = int16Array.length; i < n; i++) {
-              const sample = Math.max(-1, Math.min(float32Array[i], 1));
+              const sample = i < float32Array.length ? Math.max(-1, Math.min(float32Array[i], 1)) : 0;
               int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
             }
 
@@ -119,7 +120,7 @@ export default {
 
       switch (command) {
         case NOTE_OFF:
-          console.log('NOTE_OFF pad', index, ', velocity', data1);
+          // console.log('NOTE_OFF pad', index, ', velocity', data1);
           if (index !== -1) {
             const velocity = data1;
             return { type: PLAY_NOTE, command, index, velocity, };
@@ -127,7 +128,7 @@ export default {
           break;
         
         case NOTE_ON:
-          console.log('NOTE_ON pad', index, ', velocity', data1);
+          // console.log('NOTE_ON pad', index, ', velocity', data1);
           if (index !== -1) {
             const velocity = data1;
             return { type: PLAY_NOTE, command, index, velocity, };
@@ -156,10 +157,10 @@ export default {
               const padIndex = continuousControllers.indexOf(data0);
               if (padIndex !== -1) {
                 if (data1 === 127) {
-                  console.log('shape enter, index ', padIndex);
+                  // console.log('shape enter, index ', padIndex);
                   dispatch(getActions().toggleRecording(true, padIndex));
                 } else {
-                  console.log('shape remove, index ', padIndex);
+                  // console.log('shape remove, index ', padIndex);
                   dispatch(getActions().recordErase(padIndex));
                 }
               }
