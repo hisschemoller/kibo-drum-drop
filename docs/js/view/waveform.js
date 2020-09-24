@@ -34,18 +34,16 @@ function clearWaveform() {
  * Draw waveform, filled or line based on blockSize.
  */
 function drawWaveform() {
-  if (!channelData) {
-    return;
-  }
-
-  numBlocks = canvasEl.width;
-  blockSize = numSamples / numBlocks;
-
   if (cache[cacheIndex]) {
-    console.log('from cache', cacheIndex);
     ctx.putImageData(cache[cacheIndex], 0, 0);
   } else {
-    console.log('draw', cacheIndex);
+    if (!channelData) {
+      return;
+    }
+
+    numBlocks = canvasEl.width;
+    blockSize = numSamples / numBlocks;
+
     // Number.EPSILON will disable single line waveform
     if (blockSize < Number.EPSILON) {
       drawWaveformLine();
@@ -192,11 +190,15 @@ function handleStateChanges(e) {
   switch (action.type) {
 
     case actions.AUDIOFILE_DECODED:
-    case actions.PLAY_NOTE:
     case actions.RECORD_ERASE:
+    case actions.TOGGLE_RECORDING:
+      showWaveform(state, true);
+      break;
+    
+    case actions.PLAY_NOTE:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
-      showWaveform(state);
+      showWaveform(state, false);
       break;
     
     case actions.SET_WAVEFORM_POSITION:
@@ -249,7 +251,7 @@ function setPositionAndZoom(state) {
  * 
  * @param {Object} state Application state.
  */
-function showWaveform(state) {
+function showWaveform(state, isRedraw) {
   const { pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
@@ -257,17 +259,25 @@ function showWaveform(state) {
     return;
   }
 
-  const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
-  const buffer = getBuffer(selectedIndex);
+  cacheIndex = selectedIndex;
 
-  if (!buffer) {
-    clearWaveform();
-    return;
+  if (isRedraw) {
+    cache[cacheIndex] = null;
   }
 
-  firstSample = firstWaveformSample;
-  numSamples = numWaveformSamples;
-  channelData = buffer.getChannelData(0);
-  cacheIndex = selectedIndex;
+  if (!cache[cacheIndex]) {
+    const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
+    const buffer = getBuffer(selectedIndex);
+  
+    if (!buffer) {
+      clearWaveform();
+      return;
+    }
+  
+    firstSample = firstWaveformSample;
+    numSamples = numWaveformSamples;
+    channelData = buffer.getChannelData(0);
+  }
+
   drawWaveform();
 }

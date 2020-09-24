@@ -85,6 +85,7 @@ export default function reduce(state = initialState, action, actions = {}) {
           index,
           velocity,
         },
+        selectedIndex: index,
       };
     }
 

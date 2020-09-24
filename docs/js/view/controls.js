@@ -163,17 +163,15 @@ function handleStateChanges(e) {
 
     case actions.PLAY_NOTE:
       playNote(state);
+      updateShapes(state);
       break;
     
     case actions.RECORD_ERASE:
 		case actions.LOAD_AUDIOFILE:
     case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:
+      case actions.SET_PROJECT:
 			updateShapes(state);
-      break;
-    
-    case actions.SET_PROJECT:
-      updateShapes(state);
       break;
   }
 }
