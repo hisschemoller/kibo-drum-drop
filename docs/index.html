@@ -32,7 +32,7 @@
 			<div class="dialog__layer"></div>
 			<div class="dialog__window">
 				<div class="dialog__header">
-					<h3 class="dialog__header-label">header</h3>
+					<h3 class="dialog__header-title">header</h3>
 				</div>
 				<div class="dialog__viewport">
 					<div class="dialog__content">
@@ -45,22 +45,22 @@
         </div>
 			</div>
 		</div>
-    <div class="settings">
-      <div class="settings__layer"></div>
-      <div class="settings__window panel">
-        <div class="panel__header">
-          <h1 class="settings__header">Kibo Drum Drop</h1>
-          <p>Kibo Drum Drop is a drum pad app. Drop audio files from your desktop on the app and play the samples with the Koday Kibo or another MIDI controller to play the sounds. Use the Buetooth or MIDI connection options below.</p>
+    <div id="settings" class="dialog">
+      <div class="dialog__layer"></div>
+      <div class="dialog__window">
+        <div class="dialog__header">
+          <h1 class="dialog__header-title">Kibo Drum Drop</h1>
         </div>
-        <div class="panel__viewport">
-          <div class="panel__content">
-            <div class="panel__section">
-              <div class="panel__section-left">
+        <div class="dialog__viewport">
+          <div class="dialog__content">
+            <p>Kibo Drum Drop is a drum pad app. Drop audio files from your desktop on the app and play the samples with the Koday Kibo or another MIDI controller to play the sounds. Use the Buetooth or MIDI connection options below.</p>
+            <div class="settings__section">
+              <div class="settings__section-left">
                 <div class="settings__section-header">Bluetooth</div>
-                <button type="button" class="ble-connect">Connect...</button>
+                <button type="button" class="btn ble-connect">Connect...</button>
                 <div class="settings__status ble-status">Not connected</div>
               </div>
-              <div class="panel__section-right">
+              <div class="settings__section-right">
                 <div class="settings__section-header">MIDI</div>
                 <select class="midiin-select">
                   <option value="null">No input selected...</option>
@@ -68,13 +68,15 @@
                 <div class="settings__status midiin-status"></div>
               </div>
             </div>
-            <div class="panel__section">
-              <div class="panel__section-left">
-                <div></div>
-              </div>
-              <div class="panel__section-right">
-                <button type="button" class="settings__close">Close</button>
-              </div>
+          </div>
+        </div>
+        <div class="dialog__controls">
+          <div class="settings__section">
+            <div class="settings__section-left">
+              <div></div>
+            </div>
+            <div class="settings__section-right">
+              <button type="button" class="btn dialog__resolve">Close</button>
             </div>
           </div>
         </div>
