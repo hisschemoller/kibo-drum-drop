@@ -12,7 +12,7 @@ let dialogEl,
 
 export function setup() {
 	dialogEl = document.querySelector('.dialog');
-	headerEl = dialogEl.querySelector('.dialog__header .header__label');
+	headerEl = dialogEl.querySelector('.dialog__header .dialog__header-label');
 	bodyEl = dialogEl.querySelector('.dialog__body');
 	resolveBtnEl = dialogEl.querySelector('.dialog__resolve');
 	rejectBtnEl = dialogEl.querySelector('.dialog__reject');
