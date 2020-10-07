@@ -42,7 +42,7 @@ function addEventListeners() {
         case 54:
         case 55:
         case 56: // 8
-          dispatch(getActions().playNote(NOTE_ON, 1, pitches[e.keyCode - 49], 120));
+          dispatch(getActions().handleMIDIMessage(NOTE_ON, 1, pitches[e.keyCode - 49], 120));
           break;
       }
     }
@@ -63,7 +63,7 @@ function addEventListeners() {
         case 54:
         case 55:
         case 56: // 8
-          dispatch(getActions().playNote(NOTE_OFF, 1, pitches[e.keyCode - 49], 0));
+          dispatch(getActions().handleMIDIMessage(NOTE_OFF, 1, pitches[e.keyCode - 49], 0));
           break;
       }
     }
@@ -161,8 +161,8 @@ function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
 
-    case actions.PLAY_NOTE:
-      playNote(state);
+    case actions.HANDLE_MIDI_MESSAGE:
+      handleMIDINote(state);
       updateShapes(state);
       break;
     
@@ -208,7 +208,7 @@ function handleWaveformDrop(e) {
  * Update shape elements appearance to indicate play state.
  * @param {Object} state Application state.
  */
-function playNote(state) {
+function handleMIDINote(state) {
   const { note } = state;
   const { command, index, velocity } = note;
   if (index > -1) {

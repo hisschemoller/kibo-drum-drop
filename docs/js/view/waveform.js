@@ -195,7 +195,7 @@ function handleStateChanges(e) {
       showWaveform(state, true);
       break;
     
-    case actions.PLAY_NOTE:
+    case actions.HANDLE_MIDI_MESSAGE:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
       showWaveform(state, false);

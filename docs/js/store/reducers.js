@@ -76,7 +76,7 @@ export default function reduce(state = initialState, action, actions = {}) {
       };
     }
 
-    case actions.PLAY_NOTE: {
+    case actions.HANDLE_MIDI_MESSAGE: {
       const { command, index, velocity } = action;
       return { 
         ...state,

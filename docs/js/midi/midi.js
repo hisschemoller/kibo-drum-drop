@@ -68,7 +68,7 @@ function onMIDIMessage(e) {
 			break;
 		case NOTE_ON:
     case NOTE_OFF:
-			dispatch(getActions().playNote(e.data[0] & 0xf0, e.data[0] & 0x0f, e.data[1], e.data[2]));
+			dispatch(getActions().handleMIDIMessage(e.data[0] & 0xf0, e.data[0] & 0x0f, e.data[1], e.data[2]));
       break;
 	}
 }

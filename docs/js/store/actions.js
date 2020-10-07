@@ -9,9 +9,9 @@ const BLUETOOTH_DISCONNECT = 'BLUETOOTH_DISCONNECT';
 const BLUETOOTH_ERROR = 'BLUETOOTH_ERROR';
 const BLUETOOTH_SUCCESS = 'BLUETOOTH_SUCCESS';
 const DELETE_BODIES = 'DELETE_BODIES';
+const HANDLE_MIDI_MESSAGE = 'HANDLE_MIDI_MESSAGE';
 const LOAD_AUDIOFILE = 'LOAD_AUDIOFILE';
 const NEW_PROJECT = 'NEW_PROJECT';
-const PLAY_NOTE = 'PLAY_NOTE';
 const POPULATE = 'POPULATE';
 const RECORD_AUDIOSTREAM = 'RECORD_AUDIOSTREAM';
 const RECORD_ERASE = 'RECORD_ERASE';
@@ -112,8 +112,8 @@ export default {
   NEW_PROJECT,
   newProject: () => ({ type: NEW_PROJECT, }),
 
-  PLAY_NOTE,
-  playNote: (command, channel, data0, data1) => {
+  HANDLE_MIDI_MESSAGE,
+  handleMIDIMessage: (command, channel, data0, data1) => {
     return (dispatch, getState, getActions) => {
       const { pads, visibleWidth, visibleHeight, } = getState();
       const index = pitches.indexOf(data0);
@@ -123,7 +123,7 @@ export default {
           // console.log('NOTE_OFF pad', index, ', velocity', data1);
           if (index !== -1) {
             const velocity = data1;
-            return { type: PLAY_NOTE, command, index, velocity, };
+            return { type: HANDLE_MIDI_MESSAGE, command, index, velocity, };
           }
           break;
         
@@ -131,7 +131,7 @@ export default {
           // console.log('NOTE_ON pad', index, ', velocity', data1);
           if (index !== -1) {
             const velocity = data1;
-            return { type: PLAY_NOTE, command, index, velocity, };
+            return { type: HANDLE_MIDI_MESSAGE, command, index, velocity, };
           }
           break;
       

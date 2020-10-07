@@ -77,7 +77,7 @@ function handleStateChanges(e) {
 			updateAudioBuffers(state);
 			break;
 
-		case actions.PLAY_NOTE:
+		case actions.HANDLE_MIDI_MESSAGE:
 			playNote(state);
 			break;
 
