@@ -22,8 +22,8 @@ function addEventListeners() {
 }
 
 /**
- * 
- * @param {*} e 
+ * Capture audio recorded by the RecorderWorkletProcessor.
+ * @param {Object} e Event sent from AudioWorkletProcessor.
  */
 function captureAudio(e) {
 
@@ -133,7 +133,17 @@ function setupAudioWorklet() {
   const audioCtx = getAudioContext();
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
     recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
-    recorderWorkletNode.port.onmessage = captureAudio;
+    recorderWorkletNode.port.onmessage = e => {
+      switch (e.data) {
+
+        case 'startCapturing':
+          dispatch(getActions().recordStart());
+          break;
+
+        default:
+          captureAudio(e);
+      }
+    };
     source.connect(recorderWorkletNode);
   }).catch(error => {
     console.log(error);

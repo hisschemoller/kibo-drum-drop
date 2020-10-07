@@ -1,5 +1,6 @@
 
 const initialState = {
+  isCapturing: false,
   isMIDIAccessible: false,
   isRecordArmed: false,
   isRecording: false,
@@ -126,6 +127,10 @@ export default function reduce(state = initialState, action, actions = {}) {
       };
     }
 
+    case actions.RECORD_START: {
+      return { ...state, isCapturing: true, };
+    }
+
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD: {
       const { padIndex, } = action;
       const { pads, } = state;
@@ -217,7 +222,7 @@ export default function reduce(state = initialState, action, actions = {}) {
 
     case actions.TOGGLE_RECORDING: {
       const { isRecording, index: selectedIndex } = action;
-      return { ...state, isRecording, selectedIndex };
+      return { ...state, isRecording, selectedIndex, isCapturing: false, };
     }
 
     case actions.TOGGLE_RECORD_ARM: {

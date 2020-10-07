@@ -167,10 +167,12 @@ function handleStateChanges(e) {
       break;
     
     case actions.RECORD_ERASE:
+    case actions.RECORD_START:
 		case actions.LOAD_AUDIOFILE:
     case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:
-      case actions.SET_PROJECT:
+    case actions.SET_PROJECT:
+    case actions.TOGGLE_RECORDING:
 			updateShapes(state);
       break;
   }
@@ -236,8 +238,9 @@ export function setup() {
  * @param {Object} state Application state.
  */
 function updateShapes(state) {
-  const { note, pads, selectedIndex } = state;
-  const { index } = note;
+  const { isCapturing, isRecordArmed, isRecording, note, pads, selectedIndex } = state;
+  console.log('record', isRecording, ', capture', isCapturing);
+  
   shapeEls.forEach((shapeEl, index) => {
     if (pads[index]) {
       shapeEl.classList.add('shape--assigned');
@@ -248,6 +251,23 @@ function updateShapes(state) {
       }
     } else {
       shapeEl.classList.remove('shape--assigned');
+    }
+
+    // update recording status
+    if (index === selectedIndex) {
+      if (isRecording) {
+        if (isCapturing) {
+          shapeEl.classList.add('shape--capturing');
+        } else {
+          shapeEl.classList.add('shape--recording');
+        }
+      } else {
+        shapeEl.classList.remove('shape--recording');
+        shapeEl.classList.remove('shape--capturing');
+      }
+    } else {
+      shapeEl.classList.remove('shape--recording');
+      shapeEl.classList.remove('shape--capturing');
     }
   });
 }

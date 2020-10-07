@@ -76,7 +76,7 @@ function onCharacteristicValueChanged(e) {
 	const { value: data } = e.target;
 	switch (data.byteLength) {
 		case 5:
-			dispatch(getActions().playNote(data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3), data.getUint8(4)));
+			dispatch(getActions().handleMIDIMessage(data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3), data.getUint8(4)));
 			break;
 		case 4:
 			// console.log('knob:', data.getUint8(2) & 0xf0, data.getUint8(2) & 0x0f, data.getUint8(3));

@@ -32,9 +32,10 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
 
   /**
    * Process arrays of audio samples.
-   * @param {*} inputs 
-   * @param {*} outputs 
-   * @param {*} parameters 
+   * @param {Array} inputs 
+   * @param {Array} outputs 
+   * @param {Array} parameters 
+   * @returns {Boolean} True to keep the processor alive.
    */
   process(inputs, outputs, parameters) {
     if (this.isRecording && inputs && inputs[0].length) {
@@ -46,6 +47,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
         for (let i = 0; i < numSamples; i++) {
           if (Math.abs(channel[i]) >= this.inputLevelTreshold) {
             this.isInputLevel = true;
+            this.port.postMessage('startCapturing');
           }
         }
       }

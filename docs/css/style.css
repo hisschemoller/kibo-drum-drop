@@ -194,6 +194,12 @@ body {
 .shape--play:after {
   background-color: var(--color-lighter);
 }
+.shape--recording:after {
+  background-color: #fcc;
+}
+.shape--capturing:after {
+  background-color: #f99;
+}
 .shape--selected:after {
   border: 4px solid var(--color-midlight);
 }
