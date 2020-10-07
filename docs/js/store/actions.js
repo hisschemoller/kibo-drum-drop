@@ -151,7 +151,10 @@ export default {
               break;
 
             case 119:
-              console.log('knob click, value ', data1);
+              // console.log('knob click, value ', data1);
+              if (data1 === 127) {
+                dispatch(getActions().toggleRecordArm());
+              }
               break;
 
             default:
