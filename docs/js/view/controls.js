@@ -238,8 +238,7 @@ export function setup() {
  * @param {Object} state Application state.
  */
 function updateShapes(state) {
-  const { isCapturing, isRecordArmed, isRecording, note, pads, selectedIndex } = state;
-  console.log('record', isRecording, ', capture', isCapturing);
+  const { isCapturing, isRecordArmed, isRecording, note, pads, recordingIndex, selectedIndex } = state;
   
   shapeEls.forEach((shapeEl, index) => {
     if (pads[index]) {
@@ -254,7 +253,7 @@ function updateShapes(state) {
     }
 
     // update recording status
-    if (index === selectedIndex) {
+    if (index === recordingIndex) {
       if (isRecording) {
         if (isCapturing) {
           shapeEl.classList.add('shape--capturing');

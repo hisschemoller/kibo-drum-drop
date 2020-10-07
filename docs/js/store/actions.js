@@ -177,11 +177,11 @@ export default {
   RECORD_AUDIOSTREAM,
   recordAudioStream: binaryStr => {
     return (dispatch, getState, getActions) => {
-      const { selectedIndex } = getState();
+      const { recordingIndex } = getState();
       return {
         type: RECORD_AUDIOSTREAM,
         buffer: binaryStr,
-        name: `Recording ${selectedIndex}`,
+        name: `Recording ${recordingIndex}`,
       };
     };
   },

@@ -240,11 +240,14 @@ function stopNote(nowToStopInSecs, pitch, velocity) {
  * @param {Object} state Application state.
  */
 function updateAudioBuffers(state) {
-	const { isRecording, pads } = state;
+	const { isRecording, pads, recordingIndex } = state;
 	pads.map((pad, index) => {
 		if (pad) {
 			const { buffer: bufferStr, name } = pad;
-			if (!buffers[index] || buffers[index].name !== name || isRecording) {
+			const isEmptyPad = !buffers[index];
+			const isOverwritingPad = buffers[index] && buffers[index].name !== name;
+			const isRecordingToPad = isRecording && index === recordingIndex;
+			if (isEmptyPad || isOverwritingPad || isRecordingToPad) {
 
 				// convert String to ArrayBuffer
 				const arrayBuffer = new ArrayBuffer(bufferStr.length);
