@@ -1,9 +1,9 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getAudioContext } from './audio.js';
-import { sampleRate } from '../utils/utils.js';
+import { maxRecordingLength, sampleRate } from '../utils/utils.js';
 
 // maximum recording length is 4 seconds
-const recBufferMaxLength = sampleRate * 4;
+const recBufferMaxLength = sampleRate * maxRecordingLength;
 const maxSilenceDuration = sampleRate * 1;
 const inputLevelTreshold = 0.2;
 
@@ -43,7 +43,7 @@ function captureAudio(e) {
     binaryStr += String.fromCharCode(uint8Array[i]);
   }
 
-  dispatch(getActions().recordAudioStream(binaryStr));
+  dispatch(getActions().recordAudioStream(binaryStr, recBufferIndex));
   
   if (recBufferIndex >= recBufferMaxLength || silenceDuration >= maxSilenceDuration) {
     dispatch(getActions().toggleRecording(false));

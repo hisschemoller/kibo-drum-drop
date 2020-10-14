@@ -1,10 +1,12 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
+import { maxRecordingLength, sampleRate } from '../utils/utils.js';
 
 const padding = 10;
 const fillColor = '#eee';
 const strokeColor = '#999';
+const recordLocatorColor = '#f00';
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 const cache = [];
 let rootEl,
@@ -193,6 +195,7 @@ function handleStateChanges(e) {
     case actions.RECORD_ERASE:
     case actions.TOGGLE_RECORDING:
       showWaveform(state, true);
+      showRecordingLocator(state);
       break;
     
     case actions.HANDLE_MIDI_MESSAGE:
@@ -249,10 +252,32 @@ function setPositionAndZoom(state) {
 
 /**
  * 
+ * @param {*} state 
+ */
+function showRecordingLocator(state) {
+  const { captureBufferPosition, isCapturing, pads, selectedIndex } = state;
+  const buffer = getBuffer(selectedIndex);
+  
+  if (buffer && isCapturing) {
+    const recBufferMaxLength = sampleRate * maxRecordingLength;
+
+    // draw the locator
+    const x = (captureBufferPosition / recBufferMaxLength) * canvasRect.width;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = recordLocatorColor;
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvasRect.height);
+    ctx.stroke();
+  }
+}
+
+/**
+ * 
  * @param {Object} state Application state.
  */
 function showWaveform(state, isRedraw) {
-  const { pads, selectedIndex } = state;
+  const { captureBufferPosition, isCapturing, pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
     clearWaveform();

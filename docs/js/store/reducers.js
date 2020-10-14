@@ -1,5 +1,6 @@
 
 const initialState = {
+  captureBufferPosition: 0,
   isCapturing: false,
   isMIDIAccessible: false,
   isRecordArmed: false,
@@ -92,10 +93,11 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.RECORD_AUDIOSTREAM: {
-      const { buffer, name } = action;
+      const { buffer, captureBufferPosition, name, } = action;
       const { pads, recordingIndex } = state;
       return { 
         ...state,
+        captureBufferPosition,
         pads: pads.reduce((accumulator, pad, index) => {
           if (index === recordingIndex) {
             return [ ...accumulator, {

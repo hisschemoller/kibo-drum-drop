@@ -178,12 +178,13 @@ export default {
   populate: () => ({ type: POPULATE }),
 
   RECORD_AUDIOSTREAM,
-  recordAudioStream: binaryStr => {
+  recordAudioStream: (binaryStr, captureBufferPosition) => {
     return (dispatch, getState, getActions) => {
       const { recordingIndex } = getState();
       return {
         type: RECORD_AUDIOSTREAM,
         buffer: binaryStr,
+        captureBufferPosition,
         name: `Recording ${recordingIndex}`,
       };
     };

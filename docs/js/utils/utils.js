@@ -9,8 +9,9 @@ export function createUUID() {
   });
 }
 
-export let sampleRate = 22050;
-export let lowestOctave = 4;
-export let numOctaves = 4;
-export let pitches = [60, 62, 64, 65, 67, 69, 71, 72];
-export let continuousControllers = [102, 103, 104, 105, 106, 107, 108, 109];
+export const sampleRate = 22050;
+export const maxRecordingLength = 4;
+export const lowestOctave = 4;
+export const numOctaves = 4;
+export const pitches = [60, 62, 64, 65, 67, 69, 71, 72];
+export const continuousControllers = [102, 103, 104, 105, 106, 107, 108, 109];
