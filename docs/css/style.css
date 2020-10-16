@@ -76,6 +76,7 @@ body {
 }
 #app {
   margin: 20px auto 0 auto;
+  max-width: 800px;
   width: 96vw;
 }
 #settings-btn {
@@ -165,6 +166,7 @@ body {
 .shape {
   display: flex;
   height: 12vw;
+  max-height: 100px;
   position: relative;
   width: 12.5%;
 }
@@ -238,10 +240,139 @@ body {
   background-image: url('../img/shape7.svg');
 }
 
-@media (min-width: 770px) {
+@media (min-height: 360px) {
+  #app {
+    max-width: none;
+  }
+  .shape {
+    max-height: none;
+  }
+}
+
+@media (min-height: 360px) and (min-width: 770px) {
   #app {
     width: 80vw;
   }
+  .shape {
+    height: 10vw;
+  }
+}
+
+@media (min-height: 400px) {
+  .shape {
+    height: 24vw;
+    width: 25%;
+  }
+}
+
+@media (min-height: 400px) and (min-width: 400px) {
+  .shape {
+    height: 12vw;
+    width: 12.5%;
+  }
+}
+
+@media (min-height: 400px) and (min-width: 770px) {
+  .shape {
+    height: 10vw;
+  }
+}
+
+@media (min-height: 460px) {
+  .shape {
+    height: 24vw;
+    width: 25%;
+  }
+}
+
+@media (min-height: 460px) and (min-width: 540px) {
+  .shape {
+    height: 12vw;
+    width: 12.5%;
+  }
+}
+
+@media (min-height: 460px) and (min-width: 770px) {
+  .shape {
+    height: 10vw;
+  }
+}
+
+@media (min-height: 520px) {
+  .shape {
+    height: 24vw;
+    width: 25%;
+  }
+}
+
+@media (min-height: 520px) and (min-width: 660px) {
+  .shape {
+    height: 12vw;
+    width: 12.5%;
+  }
+}
+
+@media (min-height: 520px) and (min-width: 770px) {
+  .shape {
+    height: 10vw;
+  }
+}
+
+@media (min-height: 580px) {
+  .shape {
+    height: 24vw;
+    width: 25%;
+  }
+}
+
+@media (min-height: 580px) and (min-width: 770px) {
+  #app {
+    max-width: 740px;
+  }
+  .shape {
+    height: 20vw;
+    max-height: 185px;
+  }
+}
+
+@media (min-height: 640px) {
+  #app {
+    max-width: 860px;
+  }.shape {
+    max-height: 215px;
+  }
+}
+
+@media (min-height: 700px) {
+  #app {
+    max-width: 980px;
+  }.shape {
+    max-height: 245px;
+  }
+}
+
+@media (min-height: 780px) {
+  #app {
+    max-width: 1100px;
+  }.shape {
+    max-height: 275px;
+  }
+}
+
+@media (min-height: 840px) {
+  #app {
+    margin-top: 70px;
+  }
+  #waveform {
+    height: 120px;
+    margin-right: 10px;
+  }
+  #shapes {
+    padding: 0;
+  }
+}
+
+@media (min-width: 770px) {
   .shape:before {
     background-size: 45%;
   }
@@ -256,37 +387,5 @@ body {
 @media (min-width: 1440px) {
   .shape:before {
     background-size: 25%;
-  }
-}
-
-@media (min-height: 700px) {
-  #app {
-    margin-top: 70px;
-  }
-  #waveform {
-    height: 120px;
-    margin-right: 10px;
-  }
-  #shapes {
-    padding: 0;
-  }
-  .shape {
-    height: 24vw;
-    width: 25%;
-  }
-}
-
-@media (min-width: 770px) and (max-height: 700px) {
-  #waveform {
-    margin-right: 10px;
-  }
-  .shape {
-    height: 10vw;
-  }
-}
-
-@media (min-width: 770px) and (min-height: 700px) {
-  .shape {
-    height: 20vw;
   }
 }
