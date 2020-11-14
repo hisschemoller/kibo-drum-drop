@@ -1,8 +1,8 @@
 {
-		"name": "kibo-drum-drop",
-		"version": "0.1.1",
+		"name": "kibo-fono",
+		"version": "0.2.0",
 		"author": "Wouter Hisschemöller <email@hisschemoller.com>",
-		"description": "MIDI sample player app.",
+		"description": "MIDI audio recorder and player app.",
 		"private": true,
 		"dependencies": {},
 		"devDependencies": {

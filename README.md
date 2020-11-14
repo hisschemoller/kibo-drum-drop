@@ -1,8 +1,8 @@
-# Kibo Drum Drop
+# Kibo Fono
 
-Demo: https://hisschemoller.github.io/kibo-drum-drop/
+Demo: https://hisschemoller.github.io/kibo-fono/
 
-A small drum sample player as a web app. To use with the [Kodaly Kibo](https://www.kodaly.app/) or any other MIDI pad controller that generates MIDI notes.
+A small sample recorder and player as a web app. To use with the [Kodaly Kibo](https://www.kodaly.app/) or any other MIDI pad controller that generates MIDI notes.
 
 * Connect with MIDI or Bluetooth.
 * Play MIDI notes or computer keyboard keys 1 to 8.
