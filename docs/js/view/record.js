@@ -87,9 +87,9 @@ function updateCanvas() {
     canvasEl.height = recordMeterEl.clientHeight;
     canvasEl.width = recordMeterEl.clientWidth;
     canvasRect = canvasEl.getBoundingClientRect();
-    canvasCtx.fillStyle = 'rgb(255, 255, 255)';
-    canvasCtx.lineWidth = 2;
-    canvasCtx.strokeStyle = 'rgb(0, 0, 0)';
+    canvasCtx.fillStyle = '#aaa';
+    canvasCtx.lineWidth = 4;
+    canvasCtx.strokeStyle = '#fff';
   }
 }
 
