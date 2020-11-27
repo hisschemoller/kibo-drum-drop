@@ -7,6 +7,10 @@ const padding = 10;
 const fillColor = '#eee';
 const strokeColor = '#999';
 const recordLocatorColor = '#f00';
+const backgroundColorCapture = '#333';
+const fillColorCapture = '#fff';
+const strokeColorCapture = '#fff';
+const bufferDefaultLength = sampleRate * maxRecordingLength;
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 const cache = [];
 let rootEl,
@@ -18,7 +22,9 @@ let rootEl,
   blockSize, 
   firstSample,
   numSamples,
-  cacheIndex;
+  cacheIndex,
+  captureBufferPosition,
+  isCapturing;
 
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
@@ -63,6 +69,7 @@ function drawWaveformFilled() {
   const blocksNeg = [];
   const blocksPos = [];
 
+  // collect data
   for (let i = 0; i < numBlocks; i++) {
     const blockFirstSample = firstSample + (blockSize * i);
     const blockFirstSampleCeil = Math.ceil(blockFirstSample);
@@ -103,22 +110,53 @@ function drawWaveformFilled() {
   // draw
   const amplitude = canvasRect.height / 2;
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
-  ctx.fillStyle = fillColor;
-  ctx.strokeStyle = strokeColor;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  blocksPos.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
-  });
-  for (let i = blocksNeg.length - 1; i >= 0; i--) {
-    ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
+
+  if (isCapturing) {
+    const numBlocksCaptured = Math.ceil((captureBufferPosition / bufferDefaultLength) * numBlocks);
+
+    // zero line 
+    ctx.strokeStyle = strokeColor;
+    ctx.moveTo(0, amplitude);
+    ctx.lineTo(numBlocks, amplitude);
+    ctx.stroke();
+
+    // capture background
+    ctx.fillStyle = backgroundColorCapture;
+    ctx.fillRect(0, 0, numBlocksCaptured, canvasRect.height);
+
+    // capture graph
+    ctx.save();
+    ctx.translate(0, amplitude);
+    ctx.fillStyle = fillColorCapture;
+    ctx.strokeStyle = strokeColorCapture;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    for (let i = 0, n = numBlocksCaptured; i < n; i++) {
+      ctx.lineTo(i, blocksPos[i] * (amplitude - padding));
+    }
+    for (let i = numBlocksCaptured - 1; i >= 0; i--) {
+      ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.translate(0, amplitude);
+    ctx.fillStyle = fillColor;
+    ctx.strokeStyle = strokeColor;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    blocksPos.forEach((value, index) => {
+      ctx.lineTo(index, value * (amplitude - padding));
+    });
+    for (let i = blocksNeg.length - 1; i >= 0; i--) {
+      ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
   }
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
 }
 
 /**
@@ -172,7 +210,6 @@ function drawWaveformLine() {
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.save();
   ctx.translate(0, amplitude);
-  ctx.lineWidth = 2;
   ctx.strokeStyle = strokeColor;
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -195,7 +232,7 @@ function handleStateChanges(e) {
     case actions.RECORD_ERASE:
     case actions.TOGGLE_RECORDING:
       showWaveform(state, true);
-      showRecordingLocator(state);
+      // showRecordingLocator(state);
       break;
     
     case actions.HANDLE_MIDI_MESSAGE:
@@ -234,6 +271,8 @@ export function setup() {
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
+  ctx.lineWidth = 4;
+  ctx.lineJoin = 'round';
 
   addEventListeners();
 }
@@ -254,30 +293,31 @@ function setPositionAndZoom(state) {
  * 
  * @param {*} state 
  */
-function showRecordingLocator(state) {
-  const { captureBufferPosition, isCapturing, pads, selectedIndex } = state;
-  const buffer = getBuffer(selectedIndex);
+// function showRecordingLocator(state) {
+//   ({ captureBufferPosition, isCapturing } = state);
+//   const { pads, selectedIndex } = state;
+//   const buffer = getBuffer(selectedIndex);
   
-  if (buffer && isCapturing) {
-    const recBufferMaxLength = sampleRate * maxRecordingLength;
+//   if (buffer && isCapturing) {
 
-    // draw the locator
-    const x = (captureBufferPosition / recBufferMaxLength) * canvasRect.width;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = recordLocatorColor;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, canvasRect.height);
-    ctx.stroke();
-  }
-}
+//     // draw the locator
+//     const x = (captureBufferPosition / bufferDefaultLength) * canvasRect.width;
+//     ctx.lineWidth = 2;
+//     ctx.strokeStyle = recordLocatorColor;
+//     ctx.beginPath();
+//     ctx.moveTo(x, 0);
+//     ctx.lineTo(x, canvasRect.height);
+//     ctx.stroke();
+//   }
+// }
 
 /**
  * 
  * @param {Object} state Application state.
  */
 function showWaveform(state, isRedraw) {
-  const { captureBufferPosition, isCapturing, pads, selectedIndex } = state;
+  ({ captureBufferPosition, isCapturing } = state);
+  const { pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
     clearWaveform();
