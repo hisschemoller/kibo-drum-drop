@@ -166,14 +166,18 @@ function handleStateChanges(e) {
       updateShapes(state);
       break;
     
-    case actions.RECORD_ERASE:
     case actions.RECORD_START:
+    case actions.TOGGLE_RECORDING:
+      showCountdown(state);
+      updateShapes(state);
+      break;
+    
+    case actions.RECORD_ERASE:
 		case actions.LOAD_AUDIOFILE:
     case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:
     case actions.SET_PROJECT:
-    case actions.TOGGLE_RECORDING:
-			updateShapes(state);
+      updateShapes(state);
       break;
   }
 }
@@ -231,6 +235,26 @@ export function setup() {
   shapeEls = document.querySelectorAll('.shape');
   waveformEl = document.querySelector('#waveform');
   addEventListeners();
+}
+
+/**
+ * Countdown timer circle.
+ * @param {Object} state Application state.
+ */
+function showCountdown(state) {
+  const { isCapturing, pads, recordingIndex, selectedIndex } = state;
+  shapeEls.forEach((shapeEl, index) => {
+    if (index === recordingIndex && isCapturing) {
+      shapeEls[recordingIndex].innerHTML = `
+        <div class="countdown">
+          <svg class="countdown__svg">
+            <circle r="24" cx="50%" cy="50%"></circle>
+          </svg>
+        </div>`;
+    } else {
+      shapeEls[index].innerHTML = '';
+    }
+  });
 }
 
 /**
