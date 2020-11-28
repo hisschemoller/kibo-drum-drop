@@ -110,6 +110,8 @@ function drawWaveformFilled() {
   // draw
   const amplitude = canvasRect.height / 2;
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.lineWidth = 4;
+  ctx.lineJoin = 'round';
 
   if (isCapturing) {
     const numBlocksCaptured = Math.ceil((captureBufferPosition / bufferDefaultLength) * numBlocks);
@@ -207,6 +209,8 @@ function drawWaveformLine() {
 
   // draw
   const amplitude = canvasRect.height / 2;
+  ctx.lineWidth = 4;
+  ctx.lineJoin = 'round';
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.save();
   ctx.translate(0, amplitude);
@@ -271,8 +275,6 @@ export function setup() {
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
-  ctx.lineWidth = 4;
-  ctx.lineJoin = 'round';
 
   addEventListeners();
 }

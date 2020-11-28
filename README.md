@@ -1,5 +1,7 @@
 # Kibo Fono
 
+Kibo Fono is a web app to easily record your laptop or device microphone and to play back the recordings rhythmically.
+
 Demo: https://hisschemoller.github.io/kibo-fono/
 
 A small sample recorder and player as a web app. To use with the [Kodaly Kibo](https://www.kodaly.app/) or any other MIDI pad controller that generates MIDI notes.
