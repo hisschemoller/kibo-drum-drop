@@ -1,8 +1,69 @@
 # Kibo Fono
 
-Kibo Fono is a web app to easily record your laptop or device microphone and to play back the recordings rhythmically.
+A web app to record your microphone and play the sounds musically.
 
 Demo: https://hisschemoller.github.io/kibo-fono/
+
+## What is it about
+
+Kibo Fono is a web app that runs in your browser. It lets you record eight sounds with the microphone in your computer or mobile device. You can then play back the sounds with the Kodaly Kibo or another MIDI controller, creating rhythms and musical patterns.
+
+## Kodaly Kibo
+
+![Kodaly Kibo](assets/img/kibo-bb-prospettiva.png 'Kodaly Kibo')
+
+This app is especially made to work with the [Kodaly Kibo](https://www.kodaly.app/). The Kibo is a MIDI controller with eight wooden shapes that can be played like drum pads or piano keys. MIDI transmits wireless over Bluetooth LE or over USB cable.
+
+This document assumes you're using the app with a Kibo. There's a paragraph below however that explains how to use Kibo Fono with other MIDI controllers or even without a controller.
+
+## How to use the app with a Kibo
+
+Switch on the Kibo and connect it via Bluetooth or USB MIDI. This can be done in the Settings panel in the app, which appears when the app first loads or by clicking the cog icon in the top right of the app.
+
+The app has two modes: Record and Playback, to record sounds and to play back sounds without the chance to accidentally erase them.
+
+Switch between record and playback mode by clicking the metal knob on the Kibo.
+
+To record a sound:
+
+* Make sure the app is in record mode.
+* Enter a shape in the Kibo (first remove the shape if it was already in).
+* The app now starts to listen for sounds.
+* When the app detects sound it will start to record. It can record a maximum of 4 seconds per shape.
+* After recording stops you can tap the shape on the Kibo to listen to the recording.
+
+To erase a sound:
+
+* Make sure the app is in record mode.
+* Remove a shape from the Kibo to clear the recording in that slot.
+
+To play a sound:
+
+* Tap a shape on the Kibo to play a sound.
+
+## Use the app with another MIDI controller
+
+## Use the app without a Kibo or MIDI controller
+
+## App settings
+
+![Settings panel](assets/img/kibo-keyboard-settings.gif 'Settings panel')
+
+The settings panel shows when the app starts. It can be recalled by clicking the cogwheel icon in the top right corner of the screen.
+
+It has two settings:
+
+1. Bluetooth - Click 'Connect' to connect to a Bluetooth LE device that transmits MIDI over Bluetooth.
+2. MIDI - Select a MIDI input from the dropdown.
+
+## Supported browsers
+
+Chrome is currently the only browser that can run the app. The desktop as well as the mobile Android version of Chrome.
+
+Browsers have to implement the Javascript Web Bluetooth or Web MIDI API to run the app. Because these are required to connect through MIDI or Bluetooth.
+
+
+## Etc.
 
 A small sample recorder and player as a web app. To use with the [Kodaly Kibo](https://www.kodaly.app/) or any other MIDI pad controller that generates MIDI notes.
 
