@@ -110,7 +110,7 @@ function drawWaveformFilled() {
   // draw
   const amplitude = canvasRect.height / 2;
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.lineJoin = 'round';
 
   if (isCapturing) {
@@ -209,7 +209,7 @@ function drawWaveformLine() {
 
   // draw
   const amplitude = canvasRect.height / 2;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.lineJoin = 'round';
   ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
   ctx.save();
@@ -304,7 +304,7 @@ function setPositionAndZoom(state) {
 
 //     // draw the locator
 //     const x = (captureBufferPosition / bufferDefaultLength) * canvasRect.width;
-//     ctx.lineWidth = 2;
+//     ctx.lineWidth = 3;
 //     ctx.strokeStyle = recordLocatorColor;
 //     ctx.beginPath();
 //     ctx.moveTo(x, 0);

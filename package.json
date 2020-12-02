@@ -1,6 +1,6 @@
 {
 		"name": "kibo-fono",
-		"version": "0.2.0",
+		"version": "1.0.0",
 		"author": "Wouter Hisschemöller <email@hisschemoller.com>",
 		"description": "MIDI audio recorder and player app.",
 		"private": true,

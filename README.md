@@ -1,12 +1,14 @@
 # Kibo Fono
 
-A web app to record your microphone and play the sounds musically.
+A web app to record your microphone and play the recorded sounds musically.
 
 Demo: https://hisschemoller.github.io/kibo-fono/
 
-## What is it about
+## The Kibo Fono app
 
-Kibo Fono is a web app that runs in your browser. It lets you record eight sounds with the microphone in your computer or mobile device. You can then play back the sounds with the Kodaly Kibo or another MIDI controller, creating rhythms and musical patterns.
+![App overview](assets/img/kibo-fono-overview.jpg 'App overview')
+
+Kibo Fono runs in your browser. It lets you record eight sounds with the microphone in your computer or mobile device. You can then play back the sounds with the Kodaly Kibo or another MIDI controller, creating rhythms and musical patterns.
 
 ## Kodaly Kibo
 
@@ -18,13 +20,17 @@ This document assumes you're using the app with a Kibo. There's a paragraph belo
 
 ## How to use the app with a Kibo
 
+![App startup](assets/img/kibo-fono-startup.jpg 'App startup')
+
 Switch on the Kibo and connect it via Bluetooth or USB MIDI. This can be done in the Settings panel in the app, which appears when the app first loads or by clicking the cog icon in the top right of the app.
 
-The app has two modes: Record and Playback, to record sounds and to play back sounds without the chance to accidentally erase them.
+![Record mode](assets/img/kibo-fono-record-mode.jpg 'Record mode')
 
-Switch between record and playback mode by clicking the metal knob on the Kibo.
+The app has two modes: Record and Playback. Playback mode prevents you from accidentally ersing recordings.
 
-To record a sound:
+Switch between record and playback mode by clicking the metal knob on the Kibo, or by clicking the microphone button in the app.
+
+### To record a sound:
 
 * Make sure the app is in record mode.
 * Enter a shape in the Kibo (first remove the shape if it was already in).
