@@ -16,7 +16,7 @@ Kibo Fono runs in your browser. It lets you record eight sounds with the microph
 
 This app is especially made to work with the [Kodaly Kibo](https://www.kodaly.app/). The Kibo is a MIDI controller with eight wooden shapes that can be played like drum pads or piano keys. MIDI transmits wireless over Bluetooth LE or over USB cable.
 
-This document assumes you're using the app with a Kibo. There's a paragraph below however that explains how to use Kibo Fono with other MIDI controllers or even without a controller.
+This document assumes you're using the app with a Kibo. There's a paragraph below however that explains how to use Kibo Fono with other MIDI controllers or on its own without a controller.
 
 ## How to use the app with a Kibo
 
@@ -26,7 +26,7 @@ Switch on the Kibo and connect it via Bluetooth or USB MIDI. This can be done in
 
 ![Record mode](assets/img/kibo-fono-record-mode.jpg 'Record mode')
 
-The app has two modes: Record and Playback. Playback mode prevents you from accidentally ersing recordings.
+The app has two modes: Record and Playback. Playback mode prevents you from accidentally erasing recordings.
 
 Switch between record and playback mode by clicking the metal knob on the Kibo, or by clicking the microphone button in the app.
 
@@ -36,20 +36,51 @@ Switch between record and playback mode by clicking the metal knob on the Kibo, 
 * Enter a shape in the Kibo (first remove the shape if it was already in).
 * The app now starts to listen for sounds.
 * When the app detects sound it will start to record. It can record a maximum of 4 seconds per shape.
-* After recording stops you can tap the shape on the Kibo to listen to the recording.
+* After recording ends you can tap the shape on the Kibo to listen to the recording.
 
-To erase a sound:
+### To erase a sound:
 
 * Make sure the app is in record mode.
 * Remove a shape from the Kibo to clear the recording in that slot.
 
-To play a sound:
+### To play a sound:
 
-* Tap a shape on the Kibo to play a sound.
+* Tap a shape on the Kibo to play a sound. The softer you tap the lower the volume.
 
 ## Use the app with another MIDI controller
 
-## Use the app without a Kibo or MIDI controller
+Connect your controller via Bluetooth or USB MIDI using the app's Settings panel.
+
+### MIDI implementation
+
+* MIDI note pitches 60, 62, 64, 65, 67, 69, 71 and 72 play the eight sound slots.
+* MIDI CC 119 with value 127 toggles 'record mode' on and off.
+* MIDI CC 102, 103, 104, 105, 106, 107, 108 and 109 with value:
+  * 127 starts recording in the eight sound slots.
+  * below 127 stops recording in the sound slot.
+
+## Use the app on its own
+
+The Settings panel can be ignored and closed.
+
+### To record a sound:
+
+* Put the app in record mode by clicking the round microphone button.
+* Click and hold one of the eight sound slots.
+* The app now starts to listen for sounds.
+* When the app detects sound it will start to record. It can record a maximum of 4 seconds per shape.
+* After recording ends you can tap the computer keyboard's 1 to 8 number keys to listen to the recording.
+
+### To erase a sound:
+
+* Individual sounds can't be erased from the app. 
+* You can however do a full reset by holding the 'r', 's' and 't' (for 'reset') computer keyboard keys at the same time, then let go and refresh the browser. This clears any data.
+
+### To play a sound:
+
+* Tap the computer keyboard's 1 to 8 number keys to play the eight sound slots.
+
+## Drag and drop audio files
 
 ## App settings
 
