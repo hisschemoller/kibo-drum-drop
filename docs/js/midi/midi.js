@@ -64,7 +64,7 @@ function onMIDIMessage(e) {
 			// onSystemRealtimeMessage(e);
 			break;
 		case CONTROL_CHANGE:
-			// onControlChangeMessage(e);
+			dispatch(getActions().handleMIDIMessage(e.data[0] & 0xf0, e.data[0] & 0x0f, e.data[1], e.data[2]));
 			break;
 		case NOTE_ON:
     case NOTE_OFF:

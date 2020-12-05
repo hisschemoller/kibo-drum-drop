@@ -6,6 +6,7 @@ let rootEl, settingsBtn, shapeEls, waveformEl;
 let resetKeyCombo = [];
 let dragIndex = -1;
 let mouseDownTimeoutId;
+let isRecordArmedState = false;
 
 /**
  * Add event listeners.
@@ -96,10 +97,16 @@ function handleDocumentMouseUp(e) {
   clearTimeout(mouseDownTimeoutId);
   document.removeEventListener('mouseup', handleDocumentMouseUp);
   dispatch(getActions().toggleRecording(false));
+
+  const isShape = e.target.classList.contains('shape');
+  if (isShape) {
+    const index = [ ...e.target.parentElement.children ].indexOf(e.target);
+    dispatch(getActions().handleMIDIMessage(NOTE_OFF, 1, pitches[index], 0));
+  }
 }
 
 /**
- * Drag enters or is over pad shapes.
+ * Drag enters or is over pad shapes. 
  * @param {Object} e event.
  */
 function handleDrag(e) {
@@ -144,13 +151,21 @@ function handlePadMouseDown(e) {
   const index = [ ...e.target.parentElement.children ].indexOf(e.target);
   document.addEventListener('mouseup', handleDocumentMouseUp);
 
-  mouseDownTimeoutId = setTimeout(() => {
-
-    // start recording
-    dispatch(getActions().toggleRecording(true));
-  }, 50);
-
   dispatch(getActions().selectSound(index));
+
+  if (isRecordArmedState) {
+
+    // wait 50ms to avoid recording the sound of the mouse click itself
+    mouseDownTimeoutId = setTimeout(() => {
+  
+      // start recording
+      dispatch(getActions().toggleRecording(true));
+    }, 50);
+  } else {
+
+    // not record armed, then play the sound
+    dispatch(getActions().handleMIDIMessage(NOTE_ON, 1, pitches[index], 120));
+  }
 }
 
 /**
@@ -172,11 +187,19 @@ function handleStateChanges(e) {
       updateShapes(state);
       break;
     
+    case actions.TOGGLE_RECORD_ARM:
+      updateShapesBehaviour(state);
+      break;
+
+    case actions.SET_PROJECT:
+      updateShapes(state);
+      updateShapesBehaviour(state);
+      break;
+    
     case actions.RECORD_ERASE:
 		case actions.LOAD_AUDIOFILE:
     case actions.RECORD_AUDIOSTREAM:
     case actions.SELECT_SOUND:
-    case actions.SET_PROJECT:
       updateShapes(state);
       break;
   }
@@ -262,7 +285,7 @@ function showCountdown(state) {
  * @param {Object} state Application state.
  */
 function updateShapes(state) {
-  const { isCapturing, isRecordArmed, isRecording, note, pads, recordingIndex, selectedIndex } = state;
+  const { isCapturing, isRecording, pads, recordingIndex, selectedIndex } = state;
   
   shapeEls.forEach((shapeEl, index) => {
     if (pads[index]) {
@@ -293,4 +316,12 @@ function updateShapes(state) {
       shapeEl.classList.remove('shape--capturing');
     }
   });
+}
+
+/**
+ * Update shape elements appearance.
+ * @param {Object} state Application state.
+ */
+function updateShapesBehaviour(state) {
+  isRecordArmedState = state.isRecordArmed;
 }
