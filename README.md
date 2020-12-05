@@ -78,7 +78,8 @@ The Settings panel can be ignored and closed.
 
 ### To play a sound:
 
-* Tap the computer keyboard's 1 to 8 number keys to play the eight sound slots.
+* Make sure the app is not in record mode and click the sound slots.
+* Or, on a computer, tap the keyboard's 1 to 8 number keys to play the sounds.
 
 ## Drag and drop audio files
 
