@@ -6,6 +6,7 @@
 		"private": true,
 		"dependencies": {},
 		"devDependencies": {
-				"express": "^4.11.1"
+				"express": "^4.11.1",
+				"https-localhost": "^4.6.4"
 		}
 }
