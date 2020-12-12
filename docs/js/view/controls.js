@@ -80,6 +80,7 @@ function addEventListeners() {
     shapeEl.addEventListener('dragleave', handleDragLeave);
     shapeEl.addEventListener('drop', handleDrop);
     shapeEl.addEventListener('mousedown', handlePadMouseDown);
+    shapeEl.addEventListener('touchstart', handlePadMouseDown);
   });
 
   waveformEl.addEventListener('dragenter', handleWaveformDrag);
@@ -96,6 +97,7 @@ function handleDocumentMouseUp(e) {
   e.preventDefault();
   clearTimeout(mouseDownTimeoutId);
   document.removeEventListener('mouseup', handleDocumentMouseUp);
+  document.removeEventListener('touchend', handleDocumentMouseUp);
   dispatch(getActions().toggleRecording(false));
 
   const isShape = e.target.classList.contains('shape');
@@ -147,9 +149,11 @@ function handleDrop(e) {
  * @param {Object} e event.
  */
 function handlePadMouseDown(e) {
+  console.log(e);
   e.preventDefault();
   const index = [ ...e.target.parentElement.children ].indexOf(e.target);
   document.addEventListener('mouseup', handleDocumentMouseUp);
+  document.addEventListener('touchend', handleDocumentMouseUp);
 
   dispatch(getActions().selectSound(index));
 
