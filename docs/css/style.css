@@ -152,6 +152,7 @@ body {
   justify-content: space-around;
   outline: none;
   padding: 8px 16px;
+  -webkit-tap-highlight-color: transparent; 
   text-align: center;
 }
 .btn:hover {
@@ -215,6 +216,7 @@ body {
   height: 12vw;
   max-height: 100px;
   position: relative;
+  -webkit-tap-highlight-color: transparent; 
   width: 12.5%;
 }
 .shape:after {
