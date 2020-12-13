@@ -55,7 +55,8 @@ function draw() {
 function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
-      
+    
+    case actions.NEW_PROJECT:
     case actions.SET_PROJECT:
     case actions.TOGGLE_RECORD_ARM:
 			updateRecordArm(state);

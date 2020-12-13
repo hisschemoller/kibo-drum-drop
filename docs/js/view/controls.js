@@ -195,6 +195,7 @@ function handleStateChanges(e) {
       updateShapesBehaviour(state);
       break;
 
+    case actions.NEW_PROJECT:
     case actions.SET_PROJECT:
       updateShapes(state);
       updateShapesBehaviour(state);
@@ -301,6 +302,7 @@ function updateShapes(state) {
       }
     } else {
       shapeEl.classList.remove('shape--assigned');
+      shapeEl.classList.remove('shape--selected');
     }
 
     // update recording status

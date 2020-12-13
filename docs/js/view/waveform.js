@@ -239,6 +239,7 @@ function handleStateChanges(e) {
       // showRecordingLocator(state);
       break;
     
+    case actions.NEW_PROJECT:
     case actions.HANDLE_MIDI_MESSAGE:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:

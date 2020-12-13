@@ -2,6 +2,7 @@
 	width: 500px;
 }
 .settings__section {
+	align-items: baseline;
 	border-top: 1px solid var(--color-darkest);
 	display: flex;
 	flex-wrap: wrap;
@@ -27,5 +28,11 @@
 }
 .settings__status {
 	color: var(--color-mid);
+	margin-top: 10px;
+}
+.settings__section .btn {
+	margin-right: 10px;
+}
+.settings__btn_description {
 	margin-top: 10px;
 }

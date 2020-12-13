@@ -20,6 +20,11 @@ function addEventListeners() {
 	bluetoothConnectBtn.addEventListener('click', e => {
 		dispatch(getActions().bluetoothConnect());
 	});
+
+	rootEl.querySelector('.btn-reset').addEventListener('click', e => {
+		localStorage.clear();
+    dispatch(getActions().newProject());
+	});
 }
 
 function handleStateChanges(e) {
