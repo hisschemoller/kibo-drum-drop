@@ -1,6 +1,7 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getAudioContext } from './audio.js';
 import { maxRecordingLength, sampleRate } from '../utils/utils.js';
+import { showDialog } from '../view/dialog.js';
 
 // maximum recording length is 4 seconds
 const recBufferMaxLength = sampleRate * maxRecordingLength;
@@ -133,7 +134,10 @@ async function updateRecordArm(state) {
       source.connect(analyser);
       setupAudioWorklet();
     } catch(error) {
-      console.log('Record arm error: ', error);
+      showDialog(
+        'Microphone not accessible', 
+        `Please check the browser's site settings to make sure the use of the microphone is not blocked.`,
+        'Ok');
       dispatch(getActions().toggleRecordArm());
     }
   } else {
