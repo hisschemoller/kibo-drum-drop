@@ -17,17 +17,20 @@ function addEventListeners() {
 
 /**
  * Draw an oscilloscope of the current audio source.
+ * (not used, drawVUMeter below is easier on the processor)
  */
-function draw() {
+function drawOscilloscope() {
   const { dataArray, bufferLength } = getAnalyserData();
-  const sliceWidth = canvasRect.width / bufferLength;
+  const { height, width } = canvasRect;
+  const sliceWidth = width / bufferLength;
   let x = 0;
 
-  canvasCtx.fillRect(0, 0, canvasRect.width, canvasRect.height);
+  canvasCtx.fillRect(0, 0, width, height);
   canvasCtx.beginPath();
   for(let i = 0; i < bufferLength; i++) {
+
     const value = dataArray[i] / 128;
-    const y = value * canvasRect.height / 2;
+    const y = (value * height) / 2;
 
     if (i === 0) {
       canvasCtx.moveTo(x, y);
@@ -38,13 +41,39 @@ function draw() {
     x += sliceWidth;
   }
 
-  canvasCtx.lineTo(canvasRect.width, canvasRect.height / 2);
+  canvasCtx.lineTo(width, height / 2);
   canvasCtx.stroke();
 
   if (isArmed) {
-    requestAnimationFrame(draw);
+    requestAnimationFrame(drawOscilloscope);
   } else {
-    canvasCtx.fillRect(0, 0, canvasRect.width, canvasRect.height);
+    canvasCtx.fillRect(0, 0, width, height);
+  }
+}
+
+/**
+ * Draw a VU level meter of the current audio source.
+ */
+function drawVUMeter() {
+  const { dataArray, bufferLength } = getAnalyserData();
+  const { height, width } = canvasRect;
+
+  let sum = 0;
+  for (let i = 0; i < bufferLength; i++) {
+    sum += dataArray[i];
+  }
+  const average = sum / 128 / bufferLength;
+
+  canvasCtx.fillRect(0, 0, width, height);
+  canvasCtx.save();
+  canvasCtx.fillStyle = '#aaa';
+  canvasCtx.fillRect(0, 0, width * average, height);
+  canvasCtx.restore();
+
+  if (isArmed) {
+    requestAnimationFrame(drawVUMeter);
+  } else {
+    canvasCtx.fillRect(0, 0, width, height);
   }
 }
 
@@ -88,9 +117,9 @@ function updateCanvas() {
     canvasEl.height = recordMeterEl.clientHeight;
     canvasEl.width = recordMeterEl.clientWidth;
     canvasRect = canvasEl.getBoundingClientRect();
-    canvasCtx.fillStyle = '#aaa';
+    canvasCtx.fillStyle = '#fff';
     canvasCtx.lineWidth = 4;
-    canvasCtx.strokeStyle = '#fff';
+    canvasCtx.strokeStyle = '#aaa';
   }
 }
 
@@ -112,6 +141,6 @@ async function updateRecordArm(state) {
       canvasCtx = canvasEl.getContext('2d');
       updateCanvas();
     }
-    draw();
+    drawVUMeter();
 	}
 }

@@ -4,11 +4,13 @@ import { maxRecordingLength, sampleRate } from '../utils/utils.js';
 import { showDialog } from '../view/dialog.js';
 
 // maximum recording length is 4 seconds
+const FFT_SIZE = 256;
+const INPUT_LEVEL_TRESHOLD = 0.2;
 const recBufferMaxLength = sampleRate * maxRecordingLength;
 const maxSilenceDuration = sampleRate * 1;
-const inputLevelTreshold = 0.2;
 
-let analyser, bufferLength, dataArray, recBuffer, recBufferIndex, recorderWorkletNode, source, silenceDuration = 0, stream;
+let analyser, bufferLength, dataArray, recBuffer, recBufferIndex, recorderWorkletNode, source, 
+  silenceDuration = 0, stream;
 
 /**
  * Add event listeners.
@@ -30,7 +32,7 @@ function captureAudio(e) {
     recBuffer[recBufferIndex] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
 
     // measure silence duration
-    if (Math.abs(sample) < inputLevelTreshold) {
+    if (Math.abs(sample) < INPUT_LEVEL_TRESHOLD) {
       silenceDuration++;
     } else {
       silenceDuration = 0;
@@ -54,7 +56,7 @@ function captureAudio(e) {
 
 export function getAnalyserData() {
   if (analyser) {
-    analyser.getByteTimeDomainData(dataArray);
+    analyser.getByteFrequencyData(dataArray);
   }
   return { dataArray, bufferLength };
 }
@@ -126,10 +128,13 @@ async function updateRecordArm(state) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       analyser = ctx.createAnalyser();
-      analyser.fftSize = 2048;
-      bufferLength = analyser.fftSize;
+      analyser.fftSize = FFT_SIZE;
+      analyser.minDecibels = -100;
+      analyser.maxDecibels = -24;
+      analyser.smoothingTimeConstant = 0.8;
+      bufferLength = analyser.frequencyBinCount;
       dataArray = new Uint8Array(bufferLength);
-      analyser.getByteTimeDomainData(dataArray);
+      analyser.getByteFrequencyData(dataArray);
       source = ctx.createMediaStreamSource(stream);
       source.connect(analyser);
       setupAudioWorklet();

@@ -149,7 +149,6 @@ function handleDrop(e) {
  * @param {Object} e event.
  */
 function handlePadMouseDown(e) {
-  console.log(e);
   e.preventDefault();
   const index = [ ...e.target.parentElement.children ].indexOf(e.target);
   document.addEventListener('mouseup', handleDocumentMouseUp);
