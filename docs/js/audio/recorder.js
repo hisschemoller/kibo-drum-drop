@@ -39,12 +39,8 @@ function captureAudio(e) {
     }
   }
 
-  // ArrayBuffer to String
-  const uint8Array = new Uint8Array(recBuffer.buffer);
-  let binaryStr = '';
-  for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
-    binaryStr += String.fromCharCode(uint8Array[i]);
-  }
+  // Int16Array's ArrayBuffer to String
+  const binaryStr = JSON.stringify(Array.from(new Uint8Array(recBuffer.buffer)));
 
   dispatch(getActions().recordAudioStream(binaryStr, recBufferIndex));
   

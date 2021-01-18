@@ -250,16 +250,12 @@ function updateAudioBuffers(state) {
 			if (isEmptyPad || isOverwritingPad || isRecordingToPad) {
 
 				// convert String to ArrayBuffer
-				const arrayBuffer = new ArrayBuffer(bufferStr.length);
-				const dataView = new DataView(arrayBuffer);
-				for (let i = 0, n = arrayBuffer.byteLength; i < n; i++) {
-					dataView.setUint8(i, bufferStr.charCodeAt(i));
-				}
+				const arrayBuffer = new Uint8Array(JSON.parse(bufferStr)).buffer;
 
 				// convert ArrayBuffer to AudioBuffer
 				const int16Array = new Int16Array(arrayBuffer);
-				const channels = 1;
-				const audioBuffer = audioCtx.createBuffer(channels, int16Array.length, audioCtx.sampleRate);
+				const CHANNELS = 1;
+				const audioBuffer = audioCtx.createBuffer(CHANNELS, int16Array.length, audioCtx.sampleRate);
 				const audioBufferChannel = audioBuffer.getChannelData(0);
 				for (let i = 0, n = int16Array.length; i < n; i++) {
 					audioBufferChannel[i] = int16Array[i] / 0x8000;
