@@ -24,12 +24,10 @@ function addEventListeners() {
  * @param {Object} e Event sent from AudioWorkletProcessor.
  */
 function captureAudio(e) {
-
-  // convert Array of Numbers from -1 to 1 and add to Int16Array
   const recBufferLastIndex = Math.min(recBufferIndex + e.data.length, recBufferMaxLength);
   for (let j = 0; recBufferIndex < recBufferLastIndex; recBufferIndex++, j++) {
     const sample = Math.max(-1, Math.min(e.data[j], 1));
-    recBuffer[recBufferIndex] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+    recBuffer[recBufferIndex] = sample;
 
     // measure silence duration
     if (Math.abs(sample) < INPUT_LEVEL_TRESHOLD) {
@@ -39,14 +37,16 @@ function captureAudio(e) {
     }
   }
 
-  // Int16Array's ArrayBuffer to String
-  const binaryStr = JSON.stringify(Array.from(new Uint8Array(recBuffer.buffer)));
-
-  dispatch(getActions().recordAudioStream(binaryStr, recBufferIndex));
+  dispatch(getActions().recordAudioStream(recBufferIndex));
   
   if (recBufferIndex >= recBufferMaxLength || silenceDuration >= maxSilenceDuration) {
     dispatch(getActions().toggleRecording(false));
   }
+}
+
+function clearBuffer() {
+  recBuffer = new Array(recBufferMaxLength);
+  recBuffer.fill(0, 0, recBufferMaxLength);
 }
 
 
@@ -55,6 +55,11 @@ export function getAnalyserData() {
     analyser.getByteFrequencyData(dataArray);
   }
   return { dataArray, bufferLength };
+}
+
+
+export function getRecorderBuffer() {
+  return recBuffer;
 }
 
 /**
@@ -80,7 +85,7 @@ function handleStateChanges(e) {
  * General module setup.
  */
 export function setup() {
-  recBuffer = new Int16Array(recBufferMaxLength);
+  clearBuffer();
   addEventListeners();
 }
 
@@ -160,12 +165,12 @@ async function updateRecordArm(state) {
  * @param {Object} state Application state.
  */
 function updateRecording(state) {
-  const { isRecording } = state;
+  const { isCapturing, isRecording } = state;
   if (isRecording) {
     recorderWorkletNode.port.postMessage('stopRecording');
     recBufferIndex = 0;
-    recBuffer = new Int16Array(recBufferMaxLength);
     silenceDuration = 0;
+    clearBuffer();
 
     // a short delay to avoid recording the sound of the shape in the Kibo.
     setTimeout(() => {
@@ -173,5 +178,23 @@ function updateRecording(state) {
     }, 50);
   } else {
     recorderWorkletNode.port.postMessage('stopRecording');
+
+    if (isCapturing) {
+      
+      // convert recording buffer to string
+      const recCompleteBuffer = new Int16Array(recBufferMaxLength); 
+      for (let i = 0, n = recBuffer.length; i < n; i++) {
+        const sample = recBuffer[i];
+        recCompleteBuffer[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+      }
+
+      // Int16Array's ArrayBuffer to String
+      const binaryStr = JSON.stringify(Array.from(new Uint8Array(recCompleteBuffer.buffer)));
+      
+      // a minimal delay to dispatch after the current action has finished
+      setTimeout(() => {
+        dispatch(getActions().recordStore(binaryStr));
+      }, 0);
+    }
   }
 }

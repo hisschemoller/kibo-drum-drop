@@ -16,6 +16,7 @@ const POPULATE = 'POPULATE';
 const RECORD_AUDIOSTREAM = 'RECORD_AUDIOSTREAM';
 const RECORD_ERASE = 'RECORD_ERASE';
 const RECORD_START = 'RECORD_START';
+const RECORD_STORE = 'RECORD_STORE';
 const RELOAD_AUDIOFILE_ON_SAME_PAD = 'RELOAD_AUDIOFILE_ON_SAME_PAD';
 const RESIZE = 'RESIZE';
 const SELECT_MIDI_INPUT = 'SELECT_MIDI_INPUT';
@@ -178,12 +179,11 @@ export default {
   populate: () => ({ type: POPULATE }),
 
   RECORD_AUDIOSTREAM,
-  recordAudioStream: (binaryStr, captureBufferPosition) => {
+  recordAudioStream: (captureBufferPosition) => {
     return (dispatch, getState, getActions) => {
       const { recordingIndex } = getState();
       return {
         type: RECORD_AUDIOSTREAM,
-        buffer: binaryStr,
         captureBufferPosition,
         name: `Recording ${recordingIndex}`,
       };
@@ -204,6 +204,9 @@ export default {
 
   RECORD_START,
   recordStart: () => ({ type: RECORD_START }),
+
+  RECORD_STORE,
+  recordStore: buffer => ({ type: RECORD_STORE, buffer }),
 
   RELOAD_AUDIOFILE_ON_SAME_PAD,
 

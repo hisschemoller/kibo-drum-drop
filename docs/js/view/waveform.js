@@ -235,6 +235,7 @@ function handleStateChanges(e) {
     case actions.AUDIOFILE_DECODED:
     case actions.RECORD_ERASE:
     case actions.TOGGLE_RECORDING:
+    case actions.RECORD_STORE:
       showWaveform(state, true);
       // showRecordingLocator(state);
       break;

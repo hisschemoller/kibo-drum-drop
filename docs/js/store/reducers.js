@@ -93,7 +93,7 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.RECORD_AUDIOSTREAM: {
-      const { buffer, captureBufferPosition, name, } = action;
+      const { captureBufferPosition, name, } = action;
       const { pads, recordingIndex } = state;
       return { 
         ...state,
@@ -102,7 +102,6 @@ export default function reduce(state = initialState, action, actions = {}) {
           if (index === recordingIndex) {
             return [ ...accumulator, {
               ...pad,
-              buffer,
               name,
               numSamples: 0,
               startOffset: 0,
@@ -132,6 +131,24 @@ export default function reduce(state = initialState, action, actions = {}) {
 
     case actions.RECORD_START: {
       return { ...state, isCapturing: true, };
+    }
+
+    case actions.RECORD_STORE: {
+      const { buffer } = action;
+      const { pads, selectedIndex } = state;
+      return { 
+        ...state,
+        isCapturing: false,
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === selectedIndex) {
+            return [ ...accumulator, {
+              ...pad,
+              buffer,
+            } ];
+          }
+          return [ ...accumulator, pad, ];
+        }, []),
+      };
     }
 
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD: {
@@ -226,7 +243,7 @@ export default function reduce(state = initialState, action, actions = {}) {
     case actions.TOGGLE_RECORDING: {
       const { isRecording, index: selectedIndex } = action;
       const recordingIndex = isRecording ? selectedIndex : -1;
-      return { ...state, isRecording, recordingIndex, selectedIndex, isCapturing: false, };
+      return { ...state, isRecording, recordingIndex, selectedIndex, };
     }
 
     case actions.TOGGLE_RECORD_ARM: {
