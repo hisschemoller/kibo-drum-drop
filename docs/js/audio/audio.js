@@ -1,5 +1,5 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
-import { lowestOctave, numOctaves, pitches, sampleRate } from '../utils/utils.js';
+import { maxRecordingLength, pitches, sampleRate } from '../utils/utils.js';
 import { getRecorderBuffer } from './recorder.js';
 
 const NOTE_ON = 144;
@@ -9,9 +9,23 @@ const numVoices = 84;
 const pitchRange = new Array(127).fill(null);
 const voices = [];
 const noteDuration = 0.5;
-const buffers = [null, null, null, null, null, null, null, null];
+const buffers = [];
 let audioCtx;
 let voiceIndex = 0;
+
+/**
+ * Create Array of objects containing the audioBuffers.
+ */
+function createAudioBuffers() {
+	const recBufferMaxLength = sampleRate * maxRecordingLength;
+	for (let i = 0, n = pitches.length; i < n; i++) {
+		buffers.push({
+			buffer: audioCtx.createBuffer(CHANNELS, recBufferMaxLength, audioCtx.sampleRate),
+			isLoaded: false,
+			name: '',
+		});
+	}
+}
 
 /**
  * Create the bank of reusable voice objects.
@@ -43,7 +57,7 @@ export function getAudioContext() {
  * @returns {Object} AudioBuffer.
  */
 export function getBuffer(index) {
-  return buffers[index] ? buffers[index].buffer : null;
+  return buffers[index].isLoaded ? buffers[index].buffer : null;
 }
 
 /**
@@ -74,6 +88,10 @@ function handleStateChanges(e) {
 	const { state, action, actions, } = e.detail;
 	switch (action.type) {
 
+		case actions.HANDLE_MIDI_MESSAGE:
+			playNote(state);
+			break;
+
 		case actions.LOAD_AUDIOFILE:
 			updateAudioBuffers(state);
 			break;
@@ -82,8 +100,8 @@ function handleStateChanges(e) {
 			updateRecordingAudioBuffer(state);
 			break;
 
-		case actions.HANDLE_MIDI_MESSAGE:
-			playNote(state);
+		case actions.RECORD_START:
+			recordStart(state);
 			break;
 
 		case actions.TOGGLE_SETTINGS:
@@ -102,6 +120,7 @@ function initialiseAudio(state) {
 	if (!audioCtx && !isSettingsVisible) {
 		audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate, });
 		createVoices();
+		createAudioBuffers();
 		updateAudioBuffers(state);
 	}
 }
@@ -133,6 +152,18 @@ function playNote(state) {
 }
 
 /**
+ * 
+ * @param {Object} state Application state.
+ */
+function recordStart(state) {
+	const { pads, recordingIndex } = state;
+	const { name } = pads[recordingIndex];
+	buffers[recordingIndex].name = name;
+	buffers[recordingIndex].isLoaded = true;
+	buffers[recordingIndex].buffer.getChannelData(0).fill(0);
+}
+
+/**
  * Play a sound of fixed length.
  * @param {Number} nowToStartInSecs 
  * @param {Number} index Pad index. 
@@ -140,7 +171,7 @@ function playNote(state) {
  * @param {Number} startOffset 
  */
 function startOneShot(nowToStartInSecs, index, velocity, startOffset = 0) {
-	if (!buffers[index]) {
+	if (!buffers[index].isLoaded) {
 		return;
 	}
 
@@ -198,7 +229,7 @@ export function setup() {
  * @param {Number} duration 
  */
 function startNote(nowToStartInSecs, index, pitch, velocity, startOffset = 0) {
-	if (!buffers[index]) {
+	if (!buffers[index].isLoaded) {
 		return;
 	}
 	
@@ -208,7 +239,6 @@ function startNote(nowToStartInSecs, index, pitch, velocity, startOffset = 0) {
 
 	const voice = voices[voiceIndex];
 	voiceIndex = ++voiceIndex % numVoices;
-
 	
 	const gainLevel = velocity**2 / 127**2;
 	const startTime = audioCtx.currentTime + nowToStartInSecs;
@@ -249,8 +279,8 @@ function updateAudioBuffers(state) {
 	pads.map((pad, index) => {
 		if (pad) {
 			const { buffer: bufferStr, name } = pad;
-			const isEmptyPad = !buffers[index];
-			const isOverwritingPad = buffers[index] && buffers[index].name !== name;
+			const isEmptyPad = !buffers[index].isLoaded;
+			const isOverwritingPad = buffers[index].isLoaded && buffers[index].name !== name;
 			const isRecordingToPad = isRecording && index === recordingIndex;
 			if (isEmptyPad || isOverwritingPad || isRecordingToPad) {
 
@@ -264,28 +294,28 @@ function updateAudioBuffers(state) {
 				for (let i = 0, n = int16Array.length; i < n; i++) {
 					audioBufferChannel[i] = int16Array[i] / 0x8000;
 				}
-				buffers[index] = { name, buffer: audioBuffer, };
+				buffers[index] = { buffer: audioBuffer, isLoaded: true, name, };
 
-				dispatch({ type: getActions().AUDIOFILE_DECODED, index, numSamples: audioBuffer.length, });
+				dispatch({ type: getActions().AUDIOFILE_DECODED, index, });
 			}
 		}
 	});
 }
 
+/**
+ * Repeatedly called while recording audio.
+ * @param {Object} state Application state.
+ */
 function updateRecordingAudioBuffer(state) {
-	const { isRecording, pads, recordingIndex } = state;
-	const { name } = pads[recordingIndex];
+	const { captureFirstIndex, captureLastIndex, recordingIndex } = state;
 	const recordingBuffer = getRecorderBuffer();
-	const audioBuffer = audioCtx.createBuffer(CHANNELS, recordingBuffer.length, audioCtx.sampleRate);
-	const audioBufferChannel = audioBuffer.getChannelData(0);
-	for (let i = 0, n = recordingBuffer.length; i < n; i++) {
+	const audioBufferChannel = buffers[recordingIndex].buffer.getChannelData(0);
+	for (let i = captureFirstIndex, n = captureLastIndex; i < n; i++) {
 		audioBufferChannel[i] = recordingBuffer[i];
 	}
-	buffers[recordingIndex] = { name, buffer: audioBuffer, };
 
 	dispatch({ 
-		type: getActions().AUDIOFILE_DECODED, 
-		index: recordingIndex, 
-		numSamples: audioBuffer.length,
+		type: getActions().AUDIOFILE_DECODED,
+		index: recordingIndex,
 	});
 }

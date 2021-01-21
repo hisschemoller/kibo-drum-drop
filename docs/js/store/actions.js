@@ -179,16 +179,11 @@ export default {
   populate: () => ({ type: POPULATE }),
 
   RECORD_AUDIOSTREAM,
-  recordAudioStream: (captureBufferPosition) => {
-    return (dispatch, getState, getActions) => {
-      const { recordingIndex } = getState();
-      return {
-        type: RECORD_AUDIOSTREAM,
-        captureBufferPosition,
-        name: `Recording ${recordingIndex}`,
-      };
-    };
-  },
+  recordAudioStream: (captureFirstIndex, captureLastIndex) => ({
+    type: RECORD_AUDIOSTREAM,
+    captureFirstIndex, 
+    captureLastIndex,
+  }),
 
   RECORD_ERASE,
   recordErase: padIndex => {
@@ -203,7 +198,15 @@ export default {
   },
 
   RECORD_START,
-  recordStart: () => ({ type: RECORD_START }),
+  recordStart: () => { 
+    return (dispatch, getState, getActions) => {
+      const { recordingIndex } = getState();
+      return {
+        type: RECORD_START,
+        name: `Recording ${recordingIndex}`,
+      };
+    };
+  },
 
   RECORD_STORE,
   recordStore: buffer => ({ type: RECORD_STORE, buffer }),
@@ -227,12 +230,6 @@ export default {
 
   SET_SAMPLE_START_OFFSET,
   setSampleStartOffset: startOffset =>  ({ type: SET_SAMPLE_START_OFFSET, startOffset }),
-
-  SET_WAVEFORM_POSITION,
-  setWaveformPosition: firstWaveformSample => ({ type: SET_WAVEFORM_POSITION, firstWaveformSample }),
-
-  SET_WAVEFORM_ZOOM,
-  setWaveformZoom: (firstWaveformSample, numWaveformSamples) => ({ type: SET_WAVEFORM_ZOOM, firstWaveformSample, numWaveformSamples }),
 
   TOGGLE_RECORD_ARM,
   toggleRecordArm: () => ({ type: TOGGLE_RECORD_ARM }),

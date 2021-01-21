@@ -15,3 +15,4 @@ export const lowestOctave = 4;
 export const numOctaves = 4;
 export const pitches = [60, 62, 64, 65, 67, 69, 71, 72];
 export const continuousControllers = [102, 103, 104, 105, 106, 107, 108, 109];
+export const NUM_SAMPLES = sampleRate * maxRecordingLength;

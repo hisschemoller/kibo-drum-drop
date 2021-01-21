@@ -1,7 +1,7 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
-import { maxRecordingLength, sampleRate } from '../utils/utils.js';
+import { maxRecordingLength, NUM_SAMPLES, sampleRate } from '../utils/utils.js';
 
 const padding = 10;
 const fillColor = '#eee';
@@ -10,20 +10,18 @@ const recordLocatorColor = '#f00';
 const backgroundColorCapture = '#333';
 const fillColorCapture = '#fff';
 const strokeColorCapture = '#fff';
-const bufferDefaultLength = sampleRate * maxRecordingLength;
 const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 const cache = [];
+const firstSample = 0;
 let rootEl,
   canvasEl,
   canvasRect,
   ctx,
   channelData, 
   numBlocks, 
-  blockSize, 
-  firstSample,
-  numSamples,
+  blockSize,
   cacheIndex,
-  captureBufferPosition,
+  captureFirstIndex,
   isCapturing;
 
 function addEventListeners() {
@@ -50,7 +48,7 @@ function drawWaveform() {
     }
 
     numBlocks = canvasEl.width;
-    blockSize = numSamples / numBlocks;
+    blockSize = NUM_SAMPLES / numBlocks;
 
     // Number.EPSILON will disable single line waveform
     if (blockSize < Number.EPSILON) {
@@ -114,7 +112,7 @@ function drawWaveformFilled() {
   ctx.lineJoin = 'round';
 
   if (isCapturing) {
-    const numBlocksCaptured = Math.ceil((captureBufferPosition / bufferDefaultLength) * numBlocks);
+    const numBlocksCaptured = Math.ceil((captureFirstIndex / NUM_SAMPLES) * numBlocks);
 
     // zero line 
     ctx.strokeStyle = strokeColor;
@@ -235,6 +233,7 @@ function handleStateChanges(e) {
     case actions.AUDIOFILE_DECODED:
     case actions.RECORD_ERASE:
     case actions.TOGGLE_RECORDING:
+    case actions.RECORD_START:
     case actions.RECORD_STORE:
       showWaveform(state, true);
       // showRecordingLocator(state);
@@ -282,45 +281,11 @@ export function setup() {
 }
 
 /**
- * Redraw after changed zoom level.
- * @param {Object} state App state.
- */
-function setPositionAndZoom(state) {
-  const { pads, selectedIndex } = state;
-  const { firstWaveformSample, numWaveformSamples } = pads[selectedIndex];
-  firstSample = firstWaveformSample;
-  numSamples = numWaveformSamples;
-  drawWaveform();
-}
-
-/**
- * 
- * @param {*} state 
- */
-// function showRecordingLocator(state) {
-//   ({ captureBufferPosition, isCapturing } = state);
-//   const { pads, selectedIndex } = state;
-//   const buffer = getBuffer(selectedIndex);
-  
-//   if (buffer && isCapturing) {
-
-//     // draw the locator
-//     const x = (captureBufferPosition / bufferDefaultLength) * canvasRect.width;
-//     ctx.lineWidth = 3;
-//     ctx.strokeStyle = recordLocatorColor;
-//     ctx.beginPath();
-//     ctx.moveTo(x, 0);
-//     ctx.lineTo(x, canvasRect.height);
-//     ctx.stroke();
-//   }
-// }
-
-/**
  * 
  * @param {Object} state Application state.
  */
 function showWaveform(state, isRedraw) {
-  ({ captureBufferPosition, isCapturing } = state);
+  ({ captureFirstIndex, isCapturing } = state);
   const { pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
@@ -335,7 +300,6 @@ function showWaveform(state, isRedraw) {
   }
 
   if (!cache[cacheIndex]) {
-    const { firstWaveformSample, numWaveformSamples, } = pads[selectedIndex];
     const buffer = getBuffer(selectedIndex);
   
     if (!buffer) {
@@ -343,8 +307,6 @@ function showWaveform(state, isRedraw) {
       return;
     }
   
-    firstSample = firstWaveformSample;
-    numSamples = numWaveformSamples;
     channelData = buffer.getChannelData(0);
   }
 

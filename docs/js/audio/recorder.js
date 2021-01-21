@@ -1,12 +1,11 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getAudioContext } from './audio.js';
-import { maxRecordingLength, sampleRate } from '../utils/utils.js';
+import { NUM_SAMPLES, sampleRate } from '../utils/utils.js';
 import { showDialog } from '../view/dialog.js';
 
 // maximum recording length is 4 seconds
 const FFT_SIZE = 256;
 const INPUT_LEVEL_TRESHOLD = 0.2;
-const recBufferMaxLength = sampleRate * maxRecordingLength;
 const maxSilenceDuration = sampleRate * 1;
 
 let analyser, bufferLength, dataArray, recBuffer, recBufferIndex, recorderWorkletNode, source, 
@@ -24,9 +23,10 @@ function addEventListeners() {
  * @param {Object} e Event sent from AudioWorkletProcessor.
  */
 function captureAudio(e) {
-  const recBufferLastIndex = Math.min(recBufferIndex + e.data.length, recBufferMaxLength);
-  for (let j = 0; recBufferIndex < recBufferLastIndex; recBufferIndex++, j++) {
-    const sample = Math.max(-1, Math.min(e.data[j], 1));
+  const currentBufferIndex = recBufferIndex;
+  const recBufferLastIndex = Math.min(recBufferIndex + e.data.length, NUM_SAMPLES);
+  for (let i = 0, j = recBufferIndex, n = e.data.length; i < n; i++, recBufferIndex++) {
+    const sample = Math.max(-1, Math.min(e.data[i], 1));
     recBuffer[recBufferIndex] = sample;
 
     // measure silence duration
@@ -37,16 +37,16 @@ function captureAudio(e) {
     }
   }
 
-  dispatch(getActions().recordAudioStream(recBufferIndex));
+  dispatch(getActions().recordAudioStream(currentBufferIndex, recBufferLastIndex));
   
-  if (recBufferIndex >= recBufferMaxLength || silenceDuration >= maxSilenceDuration) {
+  if (recBufferIndex >= NUM_SAMPLES || silenceDuration >= maxSilenceDuration) {
     dispatch(getActions().toggleRecording(false));
   }
 }
 
 function clearBuffer() {
-  recBuffer = new Array(recBufferMaxLength);
-  recBuffer.fill(0, 0, recBufferMaxLength);
+  recBuffer = new Array(NUM_SAMPLES);
+  recBuffer.fill(0, 0, NUM_SAMPLES);
 }
 
 
@@ -182,7 +182,7 @@ function updateRecording(state) {
     if (isCapturing) {
       
       // convert recording buffer to string
-      const recCompleteBuffer = new Int16Array(recBufferMaxLength); 
+      const recCompleteBuffer = new Int16Array(NUM_SAMPLES); 
       for (let i = 0, n = recBuffer.length; i < n; i++) {
         const sample = recBuffer[i];
         recCompleteBuffer[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;

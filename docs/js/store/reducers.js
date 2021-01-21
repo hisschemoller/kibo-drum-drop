@@ -1,6 +1,7 @@
 
 const initialState = {
-  captureBufferPosition: 0,
+  captureFirstIndex: 0,
+  captureLastIndex: 0,
   isCapturing: false,
   isMIDIAccessible: false,
   isRecordArmed: false,
@@ -28,24 +29,6 @@ const initialState = {
 export default function reduce(state = initialState, action, actions = {}) {
   switch (action.type) {
 
-    case actions.AUDIOFILE_DECODED: {
-      const { index: loadedIndex, numSamples, } = action;
-      const { pads, } = state;
-      return { 
-        ...state,
-        pads: pads.reduce((accumulator, pad, index) => {
-          if (index === loadedIndex) {
-            return [ ...accumulator, { 
-              ...pad,
-              numSamples,
-              numWaveformSamples: pad.numWaveformSamples ? pad.numWaveformSamples : numSamples,
-            } ];
-          }
-          return [ ...accumulator, pad ];
-        }, []),
-      };
-    }
-
     case actions.LOAD_AUDIOFILE: {
       const { buffer, name, padIndex, } = action;
       const { pads, } = state;
@@ -56,10 +39,7 @@ export default function reduce(state = initialState, action, actions = {}) {
             return [ ...accumulator, { 
               buffer, 
               name,
-              numSamples: 0,
               startOffset: 0,
-              firstWaveformSample: 0,
-              numWaveformSamples: 0,
             } ];
           }
           return [ ...accumulator, pad ];
@@ -93,24 +73,11 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.RECORD_AUDIOSTREAM: {
-      const { captureBufferPosition, name, } = action;
-      const { pads, recordingIndex } = state;
+      const { captureFirstIndex, captureLastIndex, } = action;
       return { 
         ...state,
-        captureBufferPosition,
-        pads: pads.reduce((accumulator, pad, index) => {
-          if (index === recordingIndex) {
-            return [ ...accumulator, {
-              ...pad,
-              name,
-              numSamples: 0,
-              startOffset: 0,
-              firstWaveformSample: 0,
-              numWaveformSamples: 0,
-            } ];
-          }
-          return [ ...accumulator, pad, ];
-        }, []),
+        captureFirstIndex,
+        captureLastIndex,
       };
     }
     
@@ -130,7 +97,23 @@ export default function reduce(state = initialState, action, actions = {}) {
     }
 
     case actions.RECORD_START: {
-      return { ...state, isCapturing: true, };
+      const { name, } = action;
+      const { pads, recordingIndex } = state;
+      return { 
+        ...state,
+        captureFirstIndex: 0,
+        isCapturing: true, 
+        pads: pads.reduce((accumulator, pad, index) => {
+          if (index === recordingIndex) {
+            return [ ...accumulator, {
+              ...pad,
+              name,
+              startOffset: 0,
+            } ];
+          }
+          return [ ...accumulator, pad, ];
+        }, []),
+      };
     }
 
     case actions.RECORD_STORE: {
@@ -161,8 +144,6 @@ export default function reduce(state = initialState, action, actions = {}) {
             return [ ...accumulator, { 
               ...pad,
               startOffset: 0,
-              firstWaveformSample: 0,
-              numWaveformSamples: pad.numSamples,
             } ];
           }
           return [ ...accumulator, pad ];
@@ -182,34 +163,6 @@ export default function reduce(state = initialState, action, actions = {}) {
     case actions.SET_MIDI_ACCESSIBLE: {
       const { value } = action;
       return { ...state, isMIDIAccessible: value };
-    }
-
-    case actions.SET_WAVEFORM_POSITION: {
-      const { firstWaveformSample } = action;
-      const { pads, selectedIndex, } = state;
-      return { 
-        ...state,
-        pads: pads.reduce((accumulator, pad, index) => {
-          if (index === selectedIndex) {
-            return [ ...accumulator, { ...pad, firstWaveformSample, } ];
-          }
-          return [ ...accumulator, pad ];
-        }, []),
-      };
-    }
-
-    case actions.SET_WAVEFORM_ZOOM: {
-      const { firstWaveformSample, numWaveformSamples } = action;
-      const { pads, selectedIndex, } = state;
-      return { 
-        ...state,
-        pads: pads.reduce((accumulator, pad, index) => {
-          if (index === selectedIndex) {
-            return [ ...accumulator, { ...pad, firstWaveformSample, numWaveformSamples, } ];
-          }
-          return [ ...accumulator, pad ];
-        }, []),
-      };
     }
 
     case actions.SET_PROJECT: {
