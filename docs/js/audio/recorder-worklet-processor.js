@@ -45,7 +45,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
       // check for input level to start recording
       if (!this.isInputLevel) {
         for (let i = 0; i < numSamples; i++) {
-          if (Math.abs(channel[i]) >= this.inputLevelTreshold) {
+          if (Math.abs(channel[i]) >= this.inputLevelTreshold && !this.isInputLevel) {
             this.isInputLevel = true;
             this.port.postMessage('startCapturing');
           }
