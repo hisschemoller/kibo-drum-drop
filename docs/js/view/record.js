@@ -2,7 +2,9 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { getAnalyserData } from '../audio/recorder.js'
 import addWindowResizeCallback from './windowresize.js';
 
-let canvasEl, canvasRect, canvasCtx, isArmed = false, recordArmEl, recordMeterEl;
+let canvasEl, canvasRect, canvasCtx, recordArmEl, recordMeterEl;
+let isArmed = false;
+let rAFCounter = 0;
 
 /**
  * Add event listeners.
@@ -55,6 +57,14 @@ function drawOscilloscope() {
  * Draw a VU level meter of the current audio source.
  */
 function drawVUMeter() {
+
+  // lower frame rate
+  rAFCounter++;
+  if (rAFCounter % 2 !== 0) {
+    requestAnimationFrame(drawVUMeter);
+    return;
+  }
+  
   const { dataArray, bufferLength } = getAnalyserData();
   const { height, width } = canvasRect;
 
