@@ -98,6 +98,7 @@ function setupAudioWorklet() {
   const audioCtx = getAudioContext();
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
     recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
+    recorderWorkletNode.port.postMessage({ sampleRate, });
     recorderWorkletNode.port.onmessage = e => {
       switch (e.data) {
 

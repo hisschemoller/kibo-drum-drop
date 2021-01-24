@@ -8,7 +8,7 @@
 class RecorderWorkletProcessor extends AudioWorkletProcessor {
   constructor() {
     super();
-    this.sampleRate = 22050;
+    this.sampleRate;
     this.buffer = [];
     this.bufferTreshold = this.sampleRate / 4;
     this.inputLevelTreshold = 0.2;
@@ -25,6 +25,12 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
         
         case 'stopRecording':
           this.isRecording = false;
+          break;
+
+        default:
+          if (e.data.sampleRate) {
+            this.sampleRate = e.data.sampleRate;
+          }
           break;
       }
     };
