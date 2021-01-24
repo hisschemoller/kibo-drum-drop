@@ -9,8 +9,8 @@ export function createUUID() {
   });
 }
 
-export const sampleRate = 44100;
-export const maxRecordingLength = 2;
+export const sampleRate = 22050;
+export const maxRecordingLength = 4;
 export const lowestOctave = 4;
 export const numOctaves = 4;
 export const pitches = [60, 62, 64, 65, 67, 69, 71, 72];
