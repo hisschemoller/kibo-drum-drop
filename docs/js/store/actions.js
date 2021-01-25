@@ -93,12 +93,8 @@ export default {
               int16Array[i] = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
             }
 
-            // Int16Array to String
-            const uint8Array = new Uint8Array(int16Array.buffer);
-            let binaryStr = '';
-            for (let i = 0, n = uint8Array.byteLength; i < n; i++) {
-              binaryStr += String.fromCharCode(uint8Array[i]);
-            }
+            // Int16Array's ArrayBuffer to String
+            const binaryStr = JSON.stringify(Array.from(new Uint8Array(int16Array.buffer)));
 
             dispatch({
               type: LOAD_AUDIOFILE,
