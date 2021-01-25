@@ -315,7 +315,7 @@ function updateRecordingAudioBuffer(state) {
 	}
 
 	dispatch({ 
-		type: getActions().AUDIOFILE_DECODED,
+		type: getActions().AUDIORECORDING_DECODED,
 		index: recordingIndex,
 	});
 }

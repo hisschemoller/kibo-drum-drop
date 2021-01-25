@@ -1,16 +1,14 @@
 import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js';
 import { getBuffer } from '../audio/audio.js';
 import addWindowResizeCallback from './windowresize.js';
-import { maxRecordingLength, NUM_SAMPLES, sampleRate } from '../utils/utils.js';
+import { NUM_SAMPLES } from '../utils/utils.js';
 
 const padding = 10;
 const fillColor = '#eee';
 const strokeColor = '#999';
-const recordLocatorColor = '#f00';
 const backgroundColorCapture = '#333';
 const fillColorCapture = '#fff';
 const strokeColorCapture = '#fff';
-const addReducer = (accumulator, currentValue) => accumulator + currentValue;
 const cache = [];
 const firstSample = 0;
 let rootEl,
@@ -21,12 +19,63 @@ let rootEl,
   numBlocks, 
   blockSize,
   cacheIndex,
-  captureFirstIndex,
-  isCapturing;
+  amplitude;
 
+/**
+ * Event listeners.
+ */
 function addEventListeners() {
   document.addEventListener(STATE_CHANGE, handleStateChanges);
   addWindowResizeCallback(handleWindowResize);
+}
+
+/**
+ * Add to existing waveform graphic while recording chunks of audio.
+ * @param {Number} captureFirstIndex First sample in recorded audio chunk.
+ * @param {Number} captureLastIndex Last sample in recorded audio chunk.
+ */
+function addToWaveformFilled(captureFirstIndex, captureLastIndex) {
+  const firstBlockCapured = Math.ceil((captureFirstIndex / NUM_SAMPLES) * numBlocks);
+  const LastBlockCapured = Math.ceil((captureLastIndex / NUM_SAMPLES) * numBlocks);
+  const numBlocksCaptured = LastBlockCapured - firstBlockCapured;
+  const { blocksNeg, blocksPos } = getWaveformFilledData(firstBlockCapured, LastBlockCapured);
+
+  // zero line 
+  // ctx.strokeStyle = strokeColor;
+  // ctx.moveTo(0, amplitude);
+  // ctx.lineTo(numBlocks, amplitude);
+  // ctx.stroke();
+
+  // capture background
+  ctx.fillStyle = backgroundColorCapture;
+  ctx.fillRect(firstBlockCapured, 0, numBlocksCaptured, canvasRect.height);
+
+  // capture graph
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.fillStyle = fillColorCapture;
+  ctx.strokeStyle = strokeColorCapture;
+  ctx.beginPath();
+  ctx.moveTo(firstBlockCapured, 0);
+  for (let i = 0, n = numBlocksCaptured; i < n; i++) {
+    ctx.lineTo(firstBlockCapured + i, blocksPos[i] * (amplitude - padding));
+  }
+  for (let i = numBlocksCaptured - 1, n = 0; i >= n; i--) {
+    ctx.lineTo(firstBlockCapured + i, blocksNeg[i] * (amplitude - padding));
+  }
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Draw new segment of audio while recording.
+ * @param {Object} state Application state.
+ */
+function addToRecording(state) {
+  const { captureFirstIndex, captureLastIndex } = state;
+  channelData = getBuffer(cacheIndex).getChannelData(0);
+  addToWaveformFilled(captureFirstIndex, captureLastIndex);
 }
 
 /**
@@ -37,7 +86,7 @@ function clearWaveform() {
 }
 
 /**
- * Draw waveform, filled or line based on blockSize.
+ * Draw waveform or used cached image.
  */
 function drawWaveform() {
   if (cache[cacheIndex]) {
@@ -47,15 +96,7 @@ function drawWaveform() {
       return;
     }
 
-    numBlocks = canvasEl.width;
-    blockSize = NUM_SAMPLES / numBlocks;
-
-    // Number.EPSILON will disable single line waveform
-    if (blockSize < Number.EPSILON) {
-      drawWaveformLine();
-    } else {
-      drawWaveformFilled();
-    }
+    drawWaveformFilled();
     cache[cacheIndex] = ctx.getImageData(0, 0, canvasRect.width, canvasRect.height);
   }
 }
@@ -64,11 +105,40 @@ function drawWaveform() {
  * Draw waveform as a filled shape. Best for long samples.
  */
 function drawWaveformFilled() {
+  const { blocksNeg, blocksPos } = getWaveformFilledData(0, numBlocks);
+
+  // draw
+  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
+  ctx.lineWidth = 3;
+  ctx.lineJoin = 'round';
+
+  ctx.save();
+  ctx.translate(0, amplitude);
+  ctx.fillStyle = fillColor;
+  ctx.strokeStyle = strokeColor;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  blocksPos.forEach((value, index) => {
+    ctx.lineTo(index, value * (amplitude - padding));
+  });
+  for (let i = blocksNeg.length - 1; i >= 0; i--) {
+    ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
+  }
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/**
+ * Calculate the waveform graph data.
+ * @returns {Object} Contains arrays of negative and positive line segments data.
+ */
+function getWaveformFilledData(firstBlock, lastBlock) {
   const blocksNeg = [];
   const blocksPos = [];
 
   // collect data
-  for (let i = 0; i < numBlocks; i++) {
+  for (let i = firstBlock; i < lastBlock; i++) {
     const blockFirstSample = firstSample + (blockSize * i);
     const blockFirstSampleCeil = Math.ceil(blockFirstSample);
     const blockLastSample = blockFirstSample + blockSize;
@@ -105,121 +175,7 @@ function drawWaveformFilled() {
     blocksPos.push(blockPosMax);
   }
 
-  // draw
-  const amplitude = canvasRect.height / 2;
-  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.lineWidth = 3;
-  ctx.lineJoin = 'round';
-
-  if (isCapturing) {
-    const numBlocksCaptured = Math.ceil((captureFirstIndex / NUM_SAMPLES) * numBlocks);
-
-    // zero line 
-    ctx.strokeStyle = strokeColor;
-    ctx.moveTo(0, amplitude);
-    ctx.lineTo(numBlocks, amplitude);
-    ctx.stroke();
-
-    // capture background
-    ctx.fillStyle = backgroundColorCapture;
-    ctx.fillRect(0, 0, numBlocksCaptured, canvasRect.height);
-
-    // capture graph
-    ctx.save();
-    ctx.translate(0, amplitude);
-    ctx.fillStyle = fillColorCapture;
-    ctx.strokeStyle = strokeColorCapture;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    for (let i = 0, n = numBlocksCaptured; i < n; i++) {
-      ctx.lineTo(i, blocksPos[i] * (amplitude - padding));
-    }
-    for (let i = numBlocksCaptured - 1; i >= 0; i--) {
-      ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
-    }
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  } else {
-    ctx.save();
-    ctx.translate(0, amplitude);
-    ctx.fillStyle = fillColor;
-    ctx.strokeStyle = strokeColor;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    blocksPos.forEach((value, index) => {
-      ctx.lineTo(index, value * (amplitude - padding));
-    });
-    for (let i = blocksNeg.length - 1; i >= 0; i--) {
-      ctx.lineTo(i, blocksNeg[i] * (amplitude - padding));
-    }
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-}
-
-/**
- * Draw waveform as a single line. Best for short samples.
- */
-function drawWaveformLine() {
-  let blocksMax = 0;
-  let blocksMin = 0;
-  const blocks = [];
-  for (let i = 0; i < numBlocks; i++) {
-    const blockFirstSample = firstSample + (blockSize * i);
-    const blockFirstSampleCeil = Math.ceil(blockFirstSample);
-    const blockLastSample = blockFirstSample + blockSize;
-    const blockLastSampleFloor = Math.floor(blockLastSample);
-    const blockValues = [];
-
-    // interpolate first sample
-    if (blockFirstSample < blockFirstSampleCeil) {
-      const ratio = (blockFirstSampleCeil - blockFirstSample) / 1;
-      const value = (channelData[blockFirstSampleCeil] * (1 - ratio)) + (channelData[blockFirstSampleCeil - 1] * ratio);
-      blockValues.push(value);
-    }
-
-    // interpolate last sample
-    if (blockLastSample > blockLastSampleFloor) {
-      const ratio = (blockLastSample - blockLastSampleFloor) / 1;
-      const value = (channelData[blockLastSampleFloor] * (1 - ratio)) + (channelData[blockLastSampleFloor + 1] * ratio);
-      blockValues.push(value);
-    }
-
-    // iterate samples within block
-    if (blockFirstSampleCeil <= blockLastSampleFloor) {
-      for (let j = blockFirstSampleCeil; j <= blockLastSampleFloor; j++) {
-        const value = channelData[j];
-        blockValues.push(value);
-      }
-    }
-
-    const blockAverage = blockValues.reduce(addReducer, 0) / blockValues.length;
-    blocks.push(blockAverage);
-    blocksMax = Math.max(blockAverage, blocksMax);
-    blocksMin = Math.min(blockAverage, blocksMin);
-  }
-  const max = Math.max(blocksMax, -blocksMin);
-
-  // normalize
-  const blocksNormalized = blocks.map(value => value / max);
-
-  // draw
-  const amplitude = canvasRect.height / 2;
-  ctx.lineWidth = 3;
-  ctx.lineJoin = 'round';
-  ctx.clearRect(0, 0, canvasRect.width, canvasRect.height);
-  ctx.save();
-  ctx.translate(0, amplitude);
-  ctx.strokeStyle = strokeColor;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  blocksNormalized.forEach((value, index) => {
-    ctx.lineTo(index, value * (amplitude - padding));
-  });
-  ctx.stroke();
-  ctx.restore();
+  return { blocksNeg, blocksPos };
 }
 
 /**
@@ -230,17 +186,24 @@ function handleStateChanges(e) {
   const { state, action, actions, } = e.detail;
   switch (action.type) {
 
+    case actions.RECORD_START:
+      startRecording(state);
+      break;
+    
+    case actions.AUDIORECORDING_DECODED:
+      addToRecording(state);
+      break;
+
     case actions.AUDIOFILE_DECODED:
     case actions.RECORD_ERASE:
-    case actions.TOGGLE_RECORDING:
-    case actions.RECORD_START:
     case actions.RECORD_STORE:
+    case actions.TOGGLE_RECORDING:
       showWaveform(state, true);
       // showRecordingLocator(state);
       break;
     
-    case actions.NEW_PROJECT:
     case actions.HANDLE_MIDI_MESSAGE:
+    case actions.NEW_PROJECT:
     case actions.RELOAD_AUDIOFILE_ON_SAME_PAD:
     case actions.SELECT_SOUND:
       showWaveform(state, false);
@@ -262,6 +225,9 @@ function handleWindowResize() {
   canvasEl.width = rootEl.clientWidth;
   canvasRect = canvasEl.getBoundingClientRect();
   cache.length = 0;
+  numBlocks = canvasEl.width;
+  blockSize = NUM_SAMPLES / numBlocks;
+  amplitude = canvasRect.height / 2;
   drawWaveform();
 }
 
@@ -272,20 +238,18 @@ export function setup() {
   rootEl = document.querySelector('#waveform');
   canvasEl = document.createElementNS('http://www.w3.org/1999/xhtml', 'canvas');
   rootEl.appendChild(canvasEl);
-	canvasEl.height = rootEl.clientHeight;
-  canvasEl.width = rootEl.clientWidth;
-  canvasRect = canvasEl.getBoundingClientRect();
   ctx = canvasEl.getContext('2d');
 
   addEventListeners();
+  handleWindowResize();
 }
 
 /**
- * 
+ * Show a complete waveform after drag, reload or resize.
  * @param {Object} state Application state.
+ * @param {Boolean} isRedraw True if image cache must be cleared and waveform redrawn.
  */
 function showWaveform(state, isRedraw) {
-  ({ captureFirstIndex, isCapturing } = state);
   const { pads, selectedIndex } = state;
 
   if (!pads[selectedIndex]) {
@@ -301,7 +265,7 @@ function showWaveform(state, isRedraw) {
 
   if (!cache[cacheIndex]) {
     const buffer = getBuffer(selectedIndex);
-  
+
     if (!buffer) {
       clearWaveform();
       return;
@@ -311,4 +275,15 @@ function showWaveform(state, isRedraw) {
   }
 
   drawWaveform();
+}
+
+/**
+ * Initialise the recording process.
+ * @param {Object} state Application state.
+ */
+function startRecording(state) {
+  const { selectedIndex } = state;
+  cacheIndex = selectedIndex;
+  clearWaveform();
+  cache[cacheIndex] = null;
 }
