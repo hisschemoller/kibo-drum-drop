@@ -2,13 +2,14 @@ import { dispatch, getActions, getState, STATE_CHANGE, } from '../store/store.js
 import { getAudioContext } from './audio.js';
 import { NUM_SAMPLES, sampleRate } from '../utils/utils.js';
 import { showDialog } from '../view/dialog.js';
+import { createRecorderScriptProcessor } from './recorder-script-processor.js';
 
 // maximum recording length is 4 seconds
 const FFT_SIZE = 256;
 const INPUT_LEVEL_TRESHOLD = 0.2;
 const maxSilenceDuration = sampleRate * 1;
 
-let analyser, bufferLength, dataArray, recBuffer, recBufferIndex, recorderWorkletNode, source, 
+let analyser, bufferLength, dataArray, recBuffer, recBufferIndex, recorderNode, source, 
   silenceDuration = 0, stream;
 
 /**
@@ -89,17 +90,15 @@ export function setup() {
   addEventListeners();
 }
 
+/**
+ * Teh Audio web worker.
+ */
 function setupAudioWorklet() {
-  if (recorderWorkletNode) {
-    source.connect(recorderWorkletNode);
-    return;
-  }
-
   const audioCtx = getAudioContext();
   audioCtx.audioWorklet.addModule('js/audio/recorder-worklet-processor.js').then(() => {
-    recorderWorkletNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
-    recorderWorkletNode.port.postMessage({ sampleRate, });
-    recorderWorkletNode.port.onmessage = e => {
+    recorderNode = new AudioWorkletNode(audioCtx, 'recorder-worklet-processor');
+    recorderNode.port.postMessage({ sampleRate, });
+    recorderNode.port.onmessage = e => {
       switch (e.data) {
 
         case 'startCapturing':
@@ -110,10 +109,28 @@ function setupAudioWorklet() {
           captureAudio(e);
       }
     };
-    source.connect(recorderWorkletNode);
+    source.connect(recorderNode);
   }).catch(error => {
     console.log(error);
   });
+}
+
+function setupScriptProcessor() {
+  recorderNode = createRecorderScriptProcessor();
+  recorderNode.port.postMessage({ sampleRate, });
+  recorderNode.port.onmessage = (data) => {
+    switch (data) {
+
+      case 'startCapturing':
+        dispatch(getActions().recordStart());
+        break;
+
+      default:
+        captureAudio({data});
+    }
+  };
+  source.connect(recorderNode);
+  recorderNode.connect(getAudioContext().destination);
 }
 
 /**
@@ -129,6 +146,13 @@ async function updateRecordArm(state) {
   if (isRecordArmed) {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    } catch(error) {
+      showDialog(
+        'Microphone not accessible', 
+        `Please check the browser's site settings to make sure the use of the microphone is not blocked.`,
+        'Ok');
+      dispatch(getActions().toggleRecordArm());
+    } finally {
       analyser = ctx.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.minDecibels = -100;
@@ -139,20 +163,24 @@ async function updateRecordArm(state) {
       analyser.getByteFrequencyData(dataArray);
       source = ctx.createMediaStreamSource(stream);
       source.connect(analyser);
-      setupAudioWorklet();
-    } catch(error) {
-      showDialog(
-        'Microphone not accessible', 
-        `Please check the browser's site settings to make sure the use of the microphone is not blocked.`,
-        'Ok');
-      dispatch(getActions().toggleRecordArm());
-    }
+
+
+      if (recorderNode) {
+        source.connect(recorderNode);
+      } else {
+        if (typeof AudioWorkletNode === 'function') {
+          setupAudioWorklet();
+        } else {
+          setupScriptProcessor();
+        }
+      }
+    }  
   } else {
 
     // disconnect source and close stream
     if (source) {
       source.disconnect(analyser);
-      source.disconnect(recorderWorkletNode);
+      source.disconnect(recorderNode);
       source = null;
     }
 		if (stream) {
@@ -168,17 +196,17 @@ async function updateRecordArm(state) {
 function updateRecording(state) {
   const { isCapturing, isRecording } = state;
   if (isRecording) {
-    recorderWorkletNode.port.postMessage('stopRecording');
+    recorderNode.port.postMessage('stopRecording');
     recBufferIndex = 0;
     silenceDuration = 0;
     clearBuffer();
 
     // a short delay to avoid recording the sound of the shape in the Kibo.
     setTimeout(() => {
-      recorderWorkletNode.port.postMessage('startRecording');
+      recorderNode.port.postMessage('startRecording');
     }, 50);
   } else {
-    recorderWorkletNode.port.postMessage('stopRecording');
+    recorderNode.port.postMessage('stopRecording');
 
     if (isCapturing) {
       

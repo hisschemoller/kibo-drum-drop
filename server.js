@@ -1,14 +1,14 @@
 const express = require('express');
 
 // const app = express();
-const app = require("https-localhost")()
+const app = require("https-localhost")();
 const port = process.env.PORT || 3017;
 
 // Set docs folder as root
 app.use(express.static('docs'));
 
 // Allow front-end access to node_modules folder
-app.use('/scripts', express.static(`${__dirname}/node_modules/`));
+// app.use('/scripts', express.static(`${__dirname}/node_modules/`));
 
 // Listen for HTTP requests on port 3016
 app.listen(port, () => {

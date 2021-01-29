@@ -25,6 +25,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
         
         case 'stopRecording':
           this.isRecording = false;
+          this.isInputLevel = false;
           break;
 
         default:
@@ -50,7 +51,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
       const numSamples = channel.length;
 
       // check for input level to start recording
-      if (!this.isInputLevel) {
+      if (this.isRecording && !this.isInputLevel) {
         for (let i = 0; i < numSamples; i++) {
           if (Math.abs(channel[i]) >= this.inputLevelTreshold && !this.isInputLevel) {
             this.isInputLevel = true;
