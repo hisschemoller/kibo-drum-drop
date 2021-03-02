@@ -10,7 +10,7 @@ export function createRecorderScriptProcessor() {
   let isInputLevel = false;
 
 
-  const processor = audioCtx.createScriptProcessor(4096, 1, 1);
+  const processor = audioCtx.createScriptProcessor(256, 1, 1);
   processor.onaudioprocess = function(audioProcessingEvent) {
     const channel = audioProcessingEvent.inputBuffer.getChannelData(0);
     const numSamples = channel.length;

@@ -91,7 +91,7 @@ export function setup() {
 }
 
 /**
- * Teh Audio web worker.
+ * The Audio web worker.
  */
 function setupAudioWorklet() {
   const audioCtx = getAudioContext();
@@ -115,6 +115,9 @@ function setupAudioWorklet() {
   });
 }
 
+/**
+ * Script processor whem AudioWorklet isn't available.
+ */
 function setupScriptProcessor() {
   recorderNode = createRecorderScriptProcessor();
   recorderNode.port.postMessage({ sampleRate, });
@@ -168,11 +171,11 @@ async function updateRecordArm(state) {
       if (recorderNode) {
         source.connect(recorderNode);
       } else {
-        if (typeof AudioWorkletNode === 'function') {
-          setupAudioWorklet();
-        } else {
+        // if (typeof AudioWorkletNode === 'function') {
+        //   setupAudioWorklet();
+        // } else {
           setupScriptProcessor();
-        }
+        // }
       }
     }  
   } else {
