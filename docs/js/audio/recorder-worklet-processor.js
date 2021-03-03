@@ -49,6 +49,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
     if (this.isRecording && inputs && inputs[0].length) {
       const channel = inputs[0][0];
       const numSamples = channel.length;
+      let firstSampleToCapture = 0;
 
       // check for input level to start recording
       if (this.isRecording && !this.isInputLevel) {
@@ -62,7 +63,7 @@ class RecorderWorkletProcessor extends AudioWorkletProcessor {
 
       // record the input
       if (this.isInputLevel) {
-        for (let i = 0; i < numSamples; i++) {
+        for (let i = firstSampleToCapture; i < numSamples; i++) {
           this.buffer.push(channel[i]);
         }
 
